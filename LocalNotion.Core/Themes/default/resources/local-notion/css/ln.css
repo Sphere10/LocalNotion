@@ -125,70 +125,60 @@
 
 /* Foreground Colors */
 .ln-color-default {
-    background: inherit;
     color: inherit;
     fill: inherit;
     caret-color: inherit;
 }
 
 .ln-color-gray {
-    background: inherit;
     color: var(--ln-gray);
     fill: var(--ln-gray);
     caret-color: var(--ln-gray);
 }
 
 .ln-color-brown {
-    background: inherit;
     color: var(--ln-brown);
     fill: var(--ln-brown);
     caret-color: var(--ln-brown);
 }
 
 .ln-color-orange {
-    background: inherit;
     color: var(--ln-orange);
     fill: var(--ln-orange);
     caret-color: var(--ln-orange);
 }
 
 .ln-color-yellow {
-    background: inherit;
     color: var(--ln-yellow);
     fill: var(--ln-yellow);
     caret-color: var(--ln-yellow);
 }
 
 .ln-color-green {
-    background: inherit;
     color: var(--ln-green);
     fill: var(--ln-green);
     caret-color: var(--ln-green);
 }
 
 .ln-color-blue {
-    background: inherit;
     color: var(--ln-blue);
     fill: var(--ln-blue);
     caret-color: var(--ln-blue);
 }
 
 .ln-color-purple {
-    background: inherit;
     color: var(--ln-purple);
     fill: var(--ln-purple);
     caret-color: var(--ln-purple);
 }
 
 .ln-color-pink {
-    background: inherit;
     color: var(--ln-pink);
     fill: var(--ln-pink);
     caret-color: var(--ln-pink);
 }
 
 .ln-color-red {
-    background: inherit;
     color: var(--ln-red);
     fill: var(--ln-red);
     caret-color: var(--ln-red);

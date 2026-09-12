@@ -1043,7 +1043,7 @@
 	  <EmbeddedResource Include="Themes\cms\callout_shadow.inc" />
 	  <EmbeddedResource Include="Themes\cms\button_shadow.inc" />
 	  <EmbeddedResource Include="Themes\cms\h123_padding.inc" />
-	  <EmbeddedResource Include="Themes\cms\header_height.inc" />
+	  <EmbeddedResource Include="Themes\cms_header\header_height.inc" />
 	  <EmbeddedResource Include="Themes\cms\image_shadow.inc" />
 	  <EmbeddedResource Include="Themes\cms\text-shadow.inc" />
 	  <EmbeddedResource Include="Themes\cms\shadow.inc" />

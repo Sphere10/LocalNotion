@@ -33,7 +33,7 @@ $SourceRevisionId = $SourceRevisionId.ToLowerInvariant()
 $tag = "v$Version"
 $imageTag = "$($imageRepository):$Version"
 $commitTag = "$($imageRepository):sha-$SourceRevisionId"
-$informationalVersion = "$Version+build.$BuildNumber.sha.$SourceRevisionId"
+$informationalVersion = "$($Version.Split('-')[0]).$BuildNumber"
 $versionPattern = '\A(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})(-(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?\z'
 if ($Version -cnotmatch $versionPattern) { throw 'Version must be SemVer without build metadata.' }
 $semanticVersion = [System.Management.Automation.SemanticVersion]::Parse($Version)

@@ -1,13 +1,64 @@
 <Project>
+  <UsingTask TaskName="AllocateLocalNotionBuildNumber"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <CounterFile ParameterType="System.String" Required="true" />
+      <BuildNumber ParameterType="System.Int32" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Threading" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (string.IsNullOrWhiteSpace(CounterFile))
+          throw new InvalidOperationException("A local build-number counter file is required.");
+        var directory = Path.GetDirectoryName(CounterFile);
+        if (!string.IsNullOrEmpty(directory))
+          Directory.CreateDirectory(directory);
+        using (var mutex = new Mutex(false, "Sphere10.LocalNotion.LocalBuildNumber"))
+        {
+          try { mutex.WaitOne(); }
+          catch (AbandonedMutexException) { }
+          try
+          {
+            var current = 0;
+            if (File.Exists(CounterFile))
+              int.TryParse(File.ReadAllText(CounterFile).Trim(), out current);
+            if (current < 0) current = 0;
+            if (current >= 65534)
+              throw new InvalidOperationException("Local build number exceeded 65534.");
+            BuildNumber = current + 1;
+            File.WriteAllText(CounterFile, BuildNumber.ToString());
+          }
+          finally { mutex.ReleaseMutex(); }
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="AllocateLocalNotionBuildNumberForCli"
+          BeforeTargets="GetAssemblyVersion;GetAssemblyAttributes;GenerateNuspec;PrepareForBuild"
+          Condition="'$(MSBuildProjectName)' == 'LocalNotion.CLI' And '$(DesignTimeBuild)' != 'true' And '$(_LocalNotionExplicitBuildNumber)' == '' And '$(GITHUB_ACTIONS)' != 'true' And '$(TF_BUILD)' != 'true' And '$(CI)' != 'true'">
+    <AllocateLocalNotionBuildNumber CounterFile="$(_LocalNotionBuildCounterFile)">
+      <Output TaskParameter="BuildNumber" PropertyName="BuildNumber" />
+    </AllocateLocalNotionBuildNumber>
+    <PropertyGroup>
+      <AssemblyVersion>$(_LocalNotionVersionPrefix).$(BuildNumber)</AssemblyVersion>
+      <FileVersion>$(AssemblyVersion)</FileVersion>
+      <InformationalVersion>$(FileVersion)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="ValidateLocalNotionVersion"
           BeforeTargets="PrepareForBuild;GetAssemblyVersion;GenerateNuspec"
+          DependsOnTargets="AllocateLocalNotionBuildNumberForCli"
           Condition="'$(IsLocalNotionProduct)' == 'true'">
     <!-- SemVer without build metadata: metadata is supplied by the build itself.
          Numeric release components and the CI build number must fit assembly metadata. -->
     <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(ReleaseVersion)', '^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})(-(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?$'))"
            Text="ReleaseVersion must be a semantic version such as 1.5.0 or 1.5.0-rc.1, without build metadata, and each numeric release component must be between 0 and 65534." />
     <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(BuildNumber)', '^(0|[1-9][0-9]{0,4})$'))"
-           Text="BuildNumber must be an integer between 0 and 65534. CI supplies github.run_number; local builds default to 0." />
+           Text="BuildNumber must be an integer between 0 and 65534. CI supplies github.run_number; local CLI builds allocate the next number from LOCAL-BUILD-NUMBER in the solution folder." />
     <Error Condition="$(BuildNumber) &gt; 65534"
            Text="BuildNumber exceeds 65534, the assembly-version limit. Choose a new release build counter explicitly; build numbers are never silently wrapped." />
     <Error Condition="$([System.Version]::Parse('$(_LocalNotionVersionPrefix)').Major) &gt; 65534 Or $([System.Version]::Parse('$(_LocalNotionVersionPrefix)').Minor) &gt; 65534 Or $([System.Version]::Parse('$(_LocalNotionVersionPrefix)').Build) &gt; 65534"
@@ -18,11 +69,10 @@
 
   <Target Name="SetLocalNotionInformationalVersion"
           BeforeTargets="GetAssemblyAttributes"
-          DependsOnTargets="InitializeSourceControlInformation;ValidateLocalNotionVersion"
+          DependsOnTargets="InitializeSourceControlInformation;AllocateLocalNotionBuildNumberForCli;ValidateLocalNotionVersion"
           Condition="'$(IsLocalNotionProduct)' == 'true'">
     <PropertyGroup>
-      <InformationalVersion>$(ReleaseVersion)+build.$(BuildNumber)</InformationalVersion>
-      <InformationalVersion Condition="'$(SourceRevisionId)' != ''">$(InformationalVersion).sha.$(SourceRevisionId)</InformationalVersion>
+      <InformationalVersion>$(_LocalNotionVersionPrefix).$(BuildNumber)</InformationalVersion>
     </PropertyGroup>
   </Target>
 

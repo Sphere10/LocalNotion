@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- The release version is shared by the CLI and Core; CI may override it explicitly. -->
     <ReleaseVersion Condition="'$(ReleaseVersion)' == ''">1.5.0</ReleaseVersion>
-    <!-- CI supplies github.run_number. Local builds are deterministic and use zero. -->
+    <!-- CI supplies github.run_number. Local CLI builds allocate the next number from LOCAL-BUILD-NUMBER when this is omitted. -->
     <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
   </PropertyGroup>
 </Project>

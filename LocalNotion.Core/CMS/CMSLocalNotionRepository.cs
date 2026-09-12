@@ -346,8 +346,10 @@ public class CMSLocalNotionRepository : LocalNotionRepository, ICmsLocalNotionRe
 	}
 	
 	private void TouchSingularCmsItem(LocalNotionPage page) {
-		if (!CalculateCmsItem(page.CMSProperties.CustomSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords))
-			throw new InvalidOperationException($"Not a valid CMS Item: {page.Title} ({page.ID})");
+		if (!CalculateCmsItem(page.CMSProperties.CustomSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords)) {
+			Logger.Warning($"Skipping '{page.Title}' ({page.ID}): not a valid CMS item.");
+			return;
+		}
 		AddOrUpdateCmsItem(type, slug, auth, title, description, image, parts, keywords);
 	}
 

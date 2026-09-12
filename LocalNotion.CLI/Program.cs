@@ -794,7 +794,11 @@ $@"Local Notion Status:
 		await using (repo.EnterUpdateScope()) {
 			var renderer = new RenderingManager(repo, repo.Logger);
 			var toRender = (arguments.RenderAll ? LocalNotionHelper.FilterRenderableResources(repo.Resources).Select(x => x.ID) : arguments.Objects.Select(x => x.ToString())).ToHashSet();
-			if (!toRender.Any()) {
+			var cmsItemsToRender = (arguments.RenderAll ? repo.CMSItems : repo.CMSItems.Where(x => x.ReferencesAnyResources(toRender))).ToArray();
+			// CMS sites host cms/ output. --all should re-render those pages, not re-import every Notion page.
+			if (arguments.RenderAll && cmsItemsToRender.Length > 0)
+				toRender.Clear();
+			if (toRender.Count == 0 && cmsItemsToRender.Length == 0) {
 				consoleLogger.Warning("Nothing to render");
 				return Constants.ERRORCODE_OK;
 			}
@@ -810,7 +814,6 @@ $@"Local Notion Status:
 				}
 			}
 
-			var cmsItemsToRender = arguments.RenderAll ? repo.CMSItems : repo.CMSItems.Where(x => x.ReferencesAnyResources(toRender));
 			foreach (var cmsItem in cmsItemsToRender) {
 				try {
 					cancellationToken.ThrowIfCancellationRequested();
@@ -921,6 +924,10 @@ $@"Local Notion Status:
 
 		logger.Info("Committing changes to git");
 		if (!await gitSentry.Commit($"Content updates: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}", cancellationToken)) {
+			if (gitSentry.Output.Contains("nothing to commit", StringComparison.OrdinalIgnoreCase)) {
+				logger.Info("No git changes to commit");
+				return;
+			}
 			logger.Error($"git failed with error:{Environment.NewLine}{gitSentry.Output.Tabbify()}");
 			return;
 		}

@@ -8,7 +8,8 @@ Directory.CreateDirectory(fixtureRoot);
 try {
 	await VerifyWindowsRepositoryRoundTrip();
 	await VerifyWindowsProfileCreation();
-	Console.WriteLine("PASS: Windows repository load, existing render replacement, save/reload, metadata preservation, and Windows profile creation.");
+	await VerifyRemoveOldCmsRendersKeepsPortablePaths();
+	Console.WriteLine("PASS: Windows repository load, existing render replacement, save/reload, metadata preservation, Windows profile creation, and CMS orphan cleanup.");
 } finally {
 	// The only deleted tree is the unique fixture directory created above.
 	Directory.Delete(fixtureRoot, recursive: true);
@@ -102,6 +103,43 @@ async Task VerifyWindowsRepositoryRoundTrip() {
 	Equal($"files/{id}/existing.txt", saved.Resources.Single(resource => resource.ID == id).Renders[RenderType.File].LocalPath, "newly saved render is portable");
 	using (var reopened = await LocalNotionRepository.OpenRegistry(registryFile))
 		Check(File.Exists(Path.Join(repositoryRoot, reopened.Resources.Single(resource => resource.ID == id).Renders[RenderType.File].LocalPath)), "saved repository reopens");
+}
+
+async Task VerifyRemoveOldCmsRendersKeepsPortablePaths() {
+	var repositoryRoot = Path.Combine(fixtureRoot, "cms cleanup");
+	Directory.CreateDirectory(repositoryRoot);
+	var registryFile = Path.Combine(repositoryRoot, ".localnotion", "registry.json");
+	Directory.CreateDirectory(Path.GetDirectoryName(registryFile)!);
+	var cmsDir = Path.Combine(repositoryRoot, "cms");
+	Directory.CreateDirectory(cmsDir);
+
+	var keptHome = Path.Combine(cmsDir, "home.html");
+	var keptServices = Path.Combine(cmsDir, "services.html");
+	var orphan = Path.Combine(cmsDir, "orphan.html");
+	var sitemap = Path.Combine(cmsDir, "sitemap.xml");
+	await File.WriteAllTextAsync(keptHome, "home");
+	await File.WriteAllTextAsync(keptServices, "services");
+	await File.WriteAllTextAsync(orphan, "orphan");
+	await File.WriteAllTextAsync(sitemap, "<urlset/>");
+
+	Tools.Json.WriteToFile(registryFile, new LocalNotionRegistry {
+		Paths = WindowsProfile(),
+		CMSItems = [
+			new CMSItem { Slug = "home", RenderPath = @"cms\home.html" },
+			new CMSItem { Slug = "services", RenderPath = "cms/services.html" }
+		]
+	});
+
+	using var repository = await LocalNotionRepository.OpenRegistry(registryFile);
+	Equal("cms/home.html", repository.CMSItems.Single(item => item.Slug == "home").RenderPath, "portable home render");
+	Equal("cms/services.html", repository.CMSItems.Single(item => item.Slug == "services").RenderPath, "portable services render");
+
+	await new NginxMappingsGenerator(repository).RemoveOldCmsRenders();
+
+	Check(File.Exists(keptHome), "registered home.html must be kept");
+	Check(File.Exists(keptServices), "registered services.html must be kept");
+	Check(File.Exists(sitemap), "sitemap.xml must be kept");
+	Check(!File.Exists(orphan), "orphan CMS render must be removed");
 }
 
 async Task VerifyWindowsProfileCreation() {

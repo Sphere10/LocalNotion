@@ -118,11 +118,13 @@ public class CmsHtmlRenderer : HtmlRenderer {
 		}
 
 		string RenderCategoryTree(CMSContentNode category, int indentLevel) {
+			var slug = LocalNotionHelper.SanitizeSlug(category.Slug);
 			return RenderTemplate(
 				category.Slug.Equals(contentNode.Slug) ? "articles_category_active" : "articles_category",
 				new RenderTokens {
 					["indent_level"] = indentLevel,
-					["slug"] = LocalNotionHelper.SanitizeSlug(category.Slug),
+					["slug"] = slug,
+					["url"] = ToPageHref(slug),
 					["title"] = category.Title,
 					["children"] = category
 									.Children
@@ -183,6 +185,7 @@ public class CmsHtmlRenderer : HtmlRenderer {
 					["created_on_formatted"] = articleNode.CreatedOn.ToString("D"),
 					["summary"] = articleNode.Summary ?? string.Empty,
 					["slug"] = LocalNotionHelper.SanitizeSlug(articleNode.Slug),
+					["url"] = ToPageHref(articleNode.Slug),
 				}
 			);
 		}
@@ -371,6 +374,11 @@ public class CmsHtmlRenderer : HtmlRenderer {
 		}
 
 		return tokens;
+	}
+
+	static string ToPageHref(string slug) {
+		var sanitized = LocalNotionHelper.SanitizeSlug(slug);
+		return string.IsNullOrEmpty(sanitized) ? "/" : "/" + sanitized;
 	}
 
 	protected bool TryGetPageFeature(LocalNotionPage page, bool? featureImportant, bool? coverImportant, bool? thumbnailImportant, out string url) {

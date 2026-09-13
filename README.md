@@ -19,6 +19,10 @@ The official repository is [Sphere10/LocalNotion](https://github.com/Sphere10/Lo
 
 Workspace restore is listed as **coming soon** on the [Local Notion product page](https://sphere10.com/products/localnotion).
 
+## Standalone renderer
+
+LocalNotion uses the independently versioned proprietary Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md).
+
 ## Native downloads
 
 Download a native archive to run Local Notion directly on Windows, Linux, or macOS. Unified releases use the same asset names, so these links follow the latest published GitHub release.
@@ -61,10 +65,10 @@ Use the [Local Notion product page](https://sphere10.com/products/localnotion) f
 ### Prerequisites
 
 - Windows, Linux, or macOS
-- **.NET SDK 8.0+**
-- Visual Studio 2022+ (optional, but recommended for Windows)
+- **.NET 10 SDK** (the SDK version is selected by [global.json](global.json))
+- Visual Studio 2026 (18.0+) for optional Windows IDE builds
 
-> **Note:** This repository includes projects targeting both **.NET 8** and **.NET Standard 2.0**. Install the .NET 8 SDK to build the full solution.
+> **Note:** This repository includes projects targeting both **.NET 10** and **.NET Standard 2.0**. Install the .NET 10 SDK selected by global.json to build the full solution.
 
 ### Build (CLI)
 
@@ -208,7 +212,12 @@ A Local Notion repository contains:
 - `files/` — file attachments
 - `pages/` — rendered page HTML files
 - `workspaces/` — rendered workspace HTML files
-- `.localnotion/` — internal data (objects, graphs, themes, registry, logs)
+- `.localnotion/` — internal data (objects, graphs, registry, logs, generated render assets)
+- `.localnotion/themes/` — deployed built-in themes and local overrides; missing files are restored when LocalNotion creates or opens a repository, while existing files are preserved
+
+## Independent rendering
+
+Rendering is supplied by Sphere10.VisualRenderer, maintained separately in Sphere10 Commercial. See [rendering integration](docs/renderer.md) and [theme overrides](docs/renderer-themes.md).
 
 ## Troubleshooting
 
@@ -231,10 +240,13 @@ Maintainers: see the [release and deployment guide](build/README.md) for CI/CD, 
 
 ## License
 
-This project is licensed under the **GNU GPL v3.0** (or later).
+LocalNotion source code is licensed under the **GNU GPL v3.0** (or later), except separately licensed materials. The proprietary **Sphere10.VisualRenderer** binary dependency has its own license permitting royalty-free use and redistribution in commercial and open-source projects, subject to its terms and other applicable licenses.
+
+The [VisualRenderer linking exception](COPYING.EXCEPTION) grants additional permission only for copyrights Herman Schoenfeld or Sphere 10 Software Pty Ltd own or are authorized to license. It does not grant permission on behalf of other contributors or override third-party licenses. See [renderer licensing and distribution](docs/renderer.md#licensing-and-distribution).
 
 - See [`LICENSE`](LICENSE)
 - Copyright details: [`COPYRIGHT`](COPYRIGHT)
+- Renderer linking exception: [`COPYING.EXCEPTION`](COPYING.EXCEPTION)
 
 ## Credits
 

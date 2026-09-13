@@ -1,1 +1,0 @@
-﻿data-bs-pause="false"

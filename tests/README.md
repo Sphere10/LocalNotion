@@ -1,16 +1,107 @@
-# Regression checks
+# Tests
 
-## Repository path compatibility
+The LocalNotion .NET test project uses Sphere10.Framework's NUnit conventions: discoverable fixtures, parameterized cases, and constraint assertions through `Assert.That(...)`. Tests appear in the IDE test explorer and run through `dotnet test`. The shared package references live in `tests/Directory.Build.props` and use stable NUnit, adapter, and test SDK releases.
 
-Run from the source checkout with the .NET 8 SDK or later:
+Use the .NET SDK selected by `global.json`: 10.0.400, with stable patch updates allowed. The first build may need NuGet restore; the default tests require no Notion credentials or network access to source content.
+
+| Project | Folders and coverage |
+| --- | --- |
+| `LocalNotion.Core.Tests` | `Rendering/Projection`, `Rendering/Integration`, `Rendering/Characterization`, and `Repository`: Notion mapping, link resolution, graph safety, source immutability, repository/CMS rendering, legacy output parity, and portable paths. References Core, which supplies the renderer and Notion SDK dependencies, and CLI for compiled application metadata checks. External repository/live cases are explicit. |
+
+Run all default tests from the repository root:
 
 ```powershell
-dotnet run --project tests/LocalNotion.PathCompatibility
+dotnet test LocalNotion.sln -c Release
 ```
 
-The executable tests Windows-style stored paths on the host platform. Run it on both Windows and Linux when changing path handling. It creates synthetic repositories in a temporary directory and removes them when finished; it does not contact Notion or use real credentials.
+Run or discover one project:
 
-Coverage includes opening existing resource and CMS render files, replacing an existing render, saving and reopening portable paths, preserving unrelated metadata and absolute paths, creating a repository from a Windows-style profile, and leaving registry bytes unchanged during load and a no-op save. A failed assertion returns a nonzero exit code.
+```powershell
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --list-tests
+```
+
+Core fixtures use `Unit`, `Integration`, and `Characterization` categories; external runs have their own `RepositoryIntegration`, `LiveIntegration`, and `RenderingComparison` categories.
+
+The release workflow runs the solution tests on Windows x64 and Linux x64 and uploads TRX results. Default filesystem fixtures use uniquely named temporary directories and clean them up. Test state is isolated before enabling fixture parallelism. Standalone renderer tests belong to the separate Commercial solution. LocalNotion projection and integration tests reference Core, the renderer package, and the Notion SDK.
+
+## Existing repository and live Notion integration
+
+External repository tests are NUnit `[Explicit]` cases and are skipped by the default run. Set `LOCALNOTION_TEST_REPOSITORY` (or the NUnit `RepositoryPath` test parameter), then select the category to opt in. The repository category runs stored online overrides and embedded offline rendering as separate cases.
+
+```powershell
+$env:LOCALNOTION_TEST_REPOSITORY = 'D:\Databases\MyNotionRepository'
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --filter 'TestCategory=RepositoryIntegration'
+```
+
+The fixtures copy stored objects, graphs, media and overrides into temporary repositories, render all source and CMS documents, and verify the original repository's file inventory and contents remain unchanged. Credentials and deployment configuration are stripped from the copies.
+
+To exercise the Notion sync orchestrator against the configured source before rendering, select the live category:
+
+```powershell
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --filter 'TestCategory=LiveIntegration'
+```
+
+The live fixture reads the API token and CMS database ID from the supplied repository's `.localnotion/registry.json`, uses the token only in memory, and never prints it. Sync writes and rendered output stay in the temporary copy. Copies are removed after verification. These cases are integration tests, not unit tests.
+
+## Compare registered existing HTML with fresh rendering
+
+`RenderingComparison` is an explicit NUnit integration category. It compares registered source/CMS HTML with fresh output from the same stored repository and rendering mode. Source resources without a registered HTML baseline are excluded; the test does not invent a baseline for previously unrendered content. A registered path whose baseline file is missing fails the baseline check.
+
+```powershell
+$env:LOCALNOTION_TEST_REPOSITORY = 'D:\Databases\MyNotionRepository'
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --filter 'TestCategory=RenderingComparison'
+```
+
+The source repository is read only. The fixture verifies its file inventory and hashes after the run, and performs rendering inside temporary copies with registry credentials and deployment configuration removed. It uses stored objects and files without a live Notion refresh. The comparison retains its temporary directory for inspection and prints the location in NUnit progress output with the comparison totals.
+
+The retained directory contains:
+
+- `before/`: the existing HTML and its supporting files.
+- `after/`: fresh rendering and its generated asset bundle.
+- `comparison.json`: per-document paths, hashes, and separate `ExactMatch` (raw bytes), `DomMatch` (parsed DOM including doctype), and `EquivalentMatch` (normalized comparison) results. NUnit also attaches this report to the test result.
+- `dom/before/<HTML path>.txt` and `dom/after/<HTML path>.txt`: canonical documents for examining normalized differences.
+
+The test requires normalized equivalence by default and reports all three comparison levels separately. For an observational run against saved HTML that predates the stored objects, set the NUnit `RequireEquivalent` parameter to `false`; the report still records every mismatch, while rendering, asset, and source-integrity assertions remain enforced. Do not interpret a successful observational run as equality. The comparison runs under invariant culture so date labels are reproducible across machines. Normalization is limited to these presentation-preserving differences:
+
+- Recognized legacy theme CDN URLs and generated asset URLs are replaced by the SHA-256 hash of the corresponding file bytes in each copy. The file must exist inside that copy. Query strings and fragments remain significant; changed asset bytes remain different.
+- Generated list-wrapper IDs can replace absent or duplicated inherited IDs. For those wrappers, the legacy unresolved default-color token and an explicit default ordered-list start of `1` are normalized. Source item anchors and unique existing list anchors remain significant.
+- Attributes are sorted, browser-collapsible text whitespace is normalized, and newline indentation between structural elements is omitted. Inline separator spaces, nonbreaking spaces, code/preformatted content, scripts, styles, doctype, and layout-bearing elements/classes/attributes remain part of the comparison. Preformatted line endings are normalized from CRLF to LF.
+
+To use the same settings for the comparison and the two stored-repository smoke tests, supply a `.runsettings` file:
+
+```xml
+<RunSettings>
+  <TestRunParameters>
+    <Parameter name="RepositoryPath" value="D:\Databases\MyNotionRepository" />
+    <Parameter name="ExistingRendersOnly" value="false" />
+    <Parameter name="RequireEquivalent" value="false" />
+  </TestRunParameters>
+</RunSettings>
+```
+
+`ExistingRendersOnly` applies to the stored-repository smoke tests and excludes source resources without an HTML render. Its default is `false`, which renders every source resource. The comparison always uses existing registered renders.
+
+```powershell
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --settings staging.runsettings --filter 'TestCategory=RenderingComparison|TestCategory=RepositoryIntegration'
+```
+
+Browser screenshots are a separate diagnostic step using the retained copies. NUnit's HTML/DOM comparison does not execute browser JavaScript or establish pixel identity; report screenshot observations separately from these test results.
+
+## Renderer package integration
+
+LocalNotion consumes Sphere10.VisualRenderer through NuGet. Its unit tests and
+embedded-resource publication tests live in the separate Commercial solution.
+Run the tests in this solution to verify Notion projection and repository
+rendering against the pinned binary version; the package must be available
+from a configured NuGet source.
+## Repository path compatibility
+
+```powershell
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release --filter 'FullyQualifiedName~Windows'
+```
+
+Run these NUnit integration fixtures on Windows and Linux when changing path handling. Coverage includes opening stored resource and CMS render files, replacing renders, saving and reopening portable paths, preserving unrelated metadata and absolute paths, creating repositories from Windows-style profiles, and keeping registry bytes unchanged during load and no-op save. The fixtures use synthetic temporary repositories and never contact Notion.
 
 ## Git ownership regression
 

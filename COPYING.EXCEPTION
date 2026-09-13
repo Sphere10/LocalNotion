@@ -1,0 +1,54 @@
+LocalNotion exception for Sphere10.VisualRenderer
+Additional permission under GNU GPL version 3, section 7
+
+Copyright (c) Herman Schoenfeld 2018 - Present. All rights reserved.
+
+1. Grant and scope
+
+Herman Schoenfeld and Sphere 10 Software Pty Ltd (the "Grantors"), each only
+to the extent of copyright they own or are authorized to license, grant this
+additional permission for LocalNotion material licensed under GNU GPL version
+3 or, where its notice permits, any later version (the "Covered Material").
+
+You may link or combine the Covered Material with Sphere10.VisualRenderer
+compiled binaries supplied under the Sphere10 VisualRenderer License 1.0,
+including the results of build and deployment operations permitted by that
+license, and convey the resulting combination.
+
+For this combination only, the Grantors waive any requirement arising solely
+from linking or combining the Covered Material with Sphere10.VisualRenderer
+to license the renderer under the GNU GPL or to provide the renderer's
+implementation source code as Corresponding Source. This permission applies
+only to the renderer; it does not remove the GNU GPL's requirements for
+LocalNotion source code or other GNU GPL-covered parts of the combination.
+
+2. Conditions and rights that remain separate
+
+You must comply with the GNU GPL for the Covered Material, subject to this
+exception, and with the Sphere10 VisualRenderer License 1.0 for the renderer.
+Preserve the applicable notices and provide both licenses and this exception
+when distributing a combination in reliance on this permission. LocalNotion
+remains GNU GPL-licensed. The renderer remains separately and proprietarily
+licensed. Restrictions in the renderer license do not apply to LocalNotion
+source code merely because it uses the renderer.
+
+This exception grants no rights on behalf of another copyright holder and
+does not represent that every LocalNotion contributor has granted it. It does
+not override third-party licenses or cure missing rights in third-party code,
+fonts, themes, assets or dependencies. Where another copyright holder's terms
+require additional permission for the combination, obtain that permission or
+otherwise comply with those terms before conveying it.
+
+3. Modified versions and earlier grants
+
+You may extend this permission to modifications for which you own or can grant
+the necessary rights, but you are not required to do so. You may remove this
+additional permission from a copy, or from a part of it, as permitted by
+GNU GPL version 3, section 7. Removing it does not itself authorize a combination
+that otherwise requires it.
+
+This exception does not revoke or restrict permissions already validly granted
+for previously distributed copies under the GNU GPL or another license.
+The GNU GPL's warranty and liability provisions remain applicable to the
+Covered Material. A verbatim copy of GNU GPL version 3 accompanies this file
+as LICENSE.

@@ -1,1 +1,0 @@
-﻿text-center replace-parent-alignment

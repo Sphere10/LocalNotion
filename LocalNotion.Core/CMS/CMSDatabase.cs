@@ -6,7 +6,6 @@
 //
 // This notice must not be removed when duplicating this file or its contents, in whole or in part.
 
-using AngleSharp.Text;
 using Sphere10.Framework;
 
 namespace LocalNotion.Core;

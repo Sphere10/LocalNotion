@@ -12,7 +12,6 @@ using System.Text;
 using CommandLine;
 using Sphere10.Framework;
 using Notion.Client;
-using AngleSharp.Common;
 
 namespace LocalNotion.Core;
 

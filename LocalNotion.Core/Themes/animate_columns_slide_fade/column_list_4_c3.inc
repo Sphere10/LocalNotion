@@ -1,1 +1,0 @@
-﻿data-aos="fade-down"

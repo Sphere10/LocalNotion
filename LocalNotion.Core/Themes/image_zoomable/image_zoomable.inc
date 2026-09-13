@@ -1,1 +1,0 @@
-﻿data-bigpicture='{"imgSrc": "{url}"}' href="#"

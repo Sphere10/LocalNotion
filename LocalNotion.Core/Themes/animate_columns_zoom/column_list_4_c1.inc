@@ -1,1 +1,0 @@
-﻿data-aos="zoom-in"

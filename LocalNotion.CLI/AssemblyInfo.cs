@@ -72,7 +72,7 @@ using System.Runtime.InteropServices;
 	}
 	"""
 )]    // full version product key
-[assembly: AssemblyCopyright("Copyright © Sphere 10 Software 2015 - {CurrentYear}")]
+[assembly: AssemblyCopyright("Copyright \u00A9 Sphere 10 Software 2015 - {CurrentYear}")]
 [assembly: AssemblyCompanyLink("www.sphere10.com")]
 [assembly: AssemblyCompanyNumber("ABN 39 600 596 316")]
 [assembly: AssemblyTrademark("")]

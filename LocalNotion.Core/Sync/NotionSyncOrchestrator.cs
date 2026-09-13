@@ -14,6 +14,7 @@ using Sphere10.Framework;
 using Sphere10.Framework.Application;
 using LocalNotion.Core.DataObjects;
 using Notion.Client;
+using R = Sphere10.VisualRenderer;
 
 namespace LocalNotion.Core;
 
@@ -210,7 +211,7 @@ public class NotionSyncOrchestrator {
 				} catch (ProductLicenseLimitException) {
 					Logger.Error("You have reached the limit of pages available under your license. Please purchase a license to pull more pages/databases from Notion.");
 					break;
-				} catch (TaskCanceledException) {
+				} catch (OperationCanceledException) {
 					throw;
 				} catch (Exception error) {
 					Logger.Error($"Failed to process page '{page.Id}'.");
@@ -228,12 +229,16 @@ public class NotionSyncOrchestrator {
 			// Render
 			if (options.Render) {
 				var renderer = new RenderingManager(Repository, Logger);
+				using var renderBatch = renderer.BeginBatch();
 				var renderableResources = LocalNotionHelper.FilterRenderableResources(downloadedResources).ToArray();
+				var pendingIds = renderableResources.Select(resource => resource.ID).ToHashSet();
+				var pendingCms = Repository.CMSItems.Where(item => item.ReferencesAnyResources(pendingIds)).ToArray();
+				renderer.PrepareRenderPaths(pendingIds, options.RenderType, pendingCms, options.FaultTolerant, cancellationToken);
 				foreach (var resource in renderableResources) {
 					cancellationToken.ThrowIfCancellationRequested();
 					try {
 						renderer.RenderLocalResource(resource.ID, options.RenderType, options.RenderMode);
-					} catch (TaskCanceledException) {
+					} catch (OperationCanceledException) {
 						throw;
 					} catch (Exception error) {
 						Logger.Error($"Failed to render resource '{resource.Title}' ({resource.ID})");
@@ -246,10 +251,11 @@ public class NotionSyncOrchestrator {
 				// Render CMS items
 				var renderedResources = renderableResources.Select(x => x.ID).ToHashSet();
 				foreach (var cmsItem in Repository.CMSItems) {
+					cancellationToken.ThrowIfCancellationRequested();
 					if (cmsItem.ReferencesAnyResources(renderedResources)) {
 						try {
 							renderer.RenderCMSItem(cmsItem);
-						} catch (TaskCanceledException) {
+						} catch (OperationCanceledException) {
 							throw;
 						} catch (Exception error) {
 							Logger.Error($"Failed to render CMS item '{cmsItem.Slug}'");
@@ -343,10 +349,11 @@ public class NotionSyncOrchestrator {
 				// fault here would abort the whole pull instead of costing one page its keywords.
 				localPage.Keywords = [];
 				try {
-					var textRenderer = new TextRenderer(Logger);
-					var text = textRenderer.Render(localPage, pageGraph, pageObjects, Repository.Paths.GetResourceFolderPath(LocalNotionResourceType.Page, localPage.ID, FileSystemPathType.Absolute));
+					var textRenderer = new Sphere10.VisualRenderer.TextRenderer();
+					R.DocumentBlock textModel = new NotionRenderModelBuilder(Repository, Logger).Build(localPage, pageGraph, pageObjects, null, ProjectionPurpose.Text);
+					var text = textRenderer.Render(textModel);
 					localPage.Keywords = RakeAlgorithm.Run([text], minCharLength: 2).Select(x => x.Key).Take(10).ToArray();
-				} catch (TaskCanceledException) {
+				} catch (OperationCanceledException) {
 					throw;
 				} catch (Exception error) {
 					Logger.Warning($"Failed to extract keywords for '{localPage.Title}' ({localPage.ID}) - continuing without them.");
@@ -374,7 +381,6 @@ public class NotionSyncOrchestrator {
 				if (Repository.CMSDatabaseID is not null) {
 					if (CMSHelper.IsCMSPage(notionPage)) {
 						// Page is a CMSDatabase page
-						var htmlThemeManager = new HtmlThemeManager(Repository.Paths, Logger);
 						localPage.CMSProperties = CMSHelper.ParseCMSProperties(localPage.Name, notionPage);
 					} else if (localPage.ParentResourceID != null && Repository.TryGetPage(localPage.ParentResourceID, out var parentPage) && parentPage.CMSProperties != null) {
 						// Page has a CMSDatabase page ancestor, so propagate CMS properties down
@@ -579,7 +585,11 @@ public class NotionSyncOrchestrator {
 
 			if (options.Render) {
 				var renderer = new RenderingManager(Repository, Logger);
+				using var renderBatch = renderer.BeginBatch();
 				var renderableResources = LocalNotionHelper.FilterRenderableResources(downloadedResources).ToArray();
+				var pendingIds = renderableResources.Select(resource => resource.ID).ToHashSet();
+				var pendingCms = Repository.CMSItems.Where(item => item.ReferencesAnyResources(pendingIds)).ToArray();
+				renderer.PrepareRenderPaths(pendingIds, options.RenderType, pendingCms, options.FaultTolerant, cancellationToken);
 
 				// render pages
 				foreach (var renderableResource in renderableResources) {
@@ -588,7 +598,7 @@ public class NotionSyncOrchestrator {
 						renderer.RenderLocalResource(renderableResource.ID, options.RenderType, options.RenderMode);
 					} catch (ProductLicenseLimitException) {
 						throw;
-					} catch (TaskCanceledException) {
+					} catch (OperationCanceledException) {
 						throw;
 					} catch (Exception error) {
 						Logger.Error($"Failed to render page '{renderableResource.Title}' ({renderableResource.ID}).");
@@ -601,10 +611,11 @@ public class NotionSyncOrchestrator {
 				// Render CMS items
 				var renderedResources = renderableResources.Select(x => x.ID).ToHashSet();
 				foreach (var cmsItem in Repository.CMSItems) {
+					cancellationToken.ThrowIfCancellationRequested();
 					if (cmsItem.ReferencesAnyResources(renderedResources)) {
 						try {
 							renderer.RenderCMSItem(cmsItem);
-						} catch (TaskCanceledException) {
+						} catch (OperationCanceledException) {
 							throw;
 						} catch (Exception error) {
 							Logger.Error($"Failed to render CMS item '{cmsItem.Slug}'");
@@ -632,7 +643,7 @@ public class NotionSyncOrchestrator {
 	public async Task<LocalNotionFile> DownloadFileAsync(string url, string parentResourceID, bool force = false, CancellationToken cancellationToken = default) {
 		try {
 			return await DownloadFileInternalAsync(url, parentResourceID, force, cancellationToken);
-		} catch (TaskCanceledException) {
+		} catch (OperationCanceledException) {
 			throw;
 		} catch (ProductLicenseLimitException) {
 			throw;
@@ -671,7 +682,7 @@ public class NotionSyncOrchestrator {
 				file.ParentResourceID = CalculateResourceParent(file.ID);
 				Repository.AddResource(file);
 				Repository.ImportResourceRender(resourceID, RenderType.File, tmpFile);
-			} catch (TaskCanceledException) {
+			} catch (OperationCanceledException) {
 				Logger.Info($"Downloading Cancelled: {filename} (resource: {resourceID})");
 				throw;
 			} catch (ProductLicenseLimitException) {

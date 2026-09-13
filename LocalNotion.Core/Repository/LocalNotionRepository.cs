@@ -136,7 +136,7 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 
 	public bool RequiresLoad { get; private set; }
 
-	public bool RequiresSave { get; private set; }
+	public bool RequiresSave { get; protected set; }
 
 	protected bool SuppressNotifications { get; set; }
 
@@ -313,6 +313,9 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		// create path resolver
 		Paths = new PathResolver(Path.GetFullPath(Registry.Paths.RepositoryPathR, Path.GetDirectoryName(_registryPath)), Registry.Paths);
 
+		// LocalNotion keeps a complete theme tree for renderers that consume physical files.
+		await RepositoryThemeDeployment.DeployMissing(Paths.GetInternalResourceFolderPath(InternalResourceType.Themes, FileSystemPathType.Absolute));
+
 		// create the resource lookup table
 		_resourcesByNID = new BulkFetchActionCache<string, LocalNotionResource>( 
 			() => {
@@ -372,9 +375,6 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		
 		// Create graph store
 		_graphStore = new ReverseGuidStringFileStore(Paths.GetInternalResourceFolderPath(InternalResourceType.Graphs, FileSystemPathType.Absolute), LocalNotionHelper.ObjectGuidToId, LocalNotionHelper.ObjectIdToGuid, fileExtension: ".json" );
-
-		// Create template manager (will extract missing templates on ctor)
-		HtmlThemeManager.ExtractEmbeddedThemes(Paths.GetInternalResourceFolderPath(InternalResourceType.Themes, FileSystemPathType.Absolute), false, _logger);
 
 		RequiresLoad = false;
 

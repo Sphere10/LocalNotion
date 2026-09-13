@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AngleSharp" Version="1.8.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../LocalNotion.Core/LocalNotion.Core.csproj" />
+		<ProjectReference Include="../../LocalNotion.CLI/LocalNotion.CLI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Rendering/Characterization/legacy-*.txt" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../../docker/LocalNotionDockerLauncher.cs" Link="Launcher/LocalNotionDockerLauncher.cs" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../../docker/install-cli.ps1" Link="Launcher/install-cli.ps1" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../../docker/localnotion-docker.ps1" Link="Launcher/localnotion-docker.ps1" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+	</ItemGroup>
+</Project>

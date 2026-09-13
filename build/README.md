@@ -33,13 +33,15 @@ The build system lives in this repository. It does not require `Y:\builds`, the 
 
 ## Requirements
 
-Use the .NET 8 SDK, Git, and PowerShell **7.4 or later** for packaging and CI helpers. The release entry point requires PowerShell 7 or later; use 7.4 for the complete toolchain. Docker Desktop or Docker Engine is needed for Docker builds and image checks. The local release command requires authenticated Git push access to the official repository. GitHub Actions supplies GitHub CLI and its own token for the publishing job; you do not need to install GitHub CLI locally.
+Use the .NET 10 SDK selected by [global.json](../global.json), Git, and PowerShell **7.4 or later** for packaging and CI helpers. The release entry point requires PowerShell 7 or later; use 7.4 for the complete toolchain. Docker Desktop or Docker Engine is needed for Docker builds and image checks. The local release command requires authenticated Git push access to the official repository. GitHub Actions supplies GitHub CLI and its own token for the publishing job; you do not need to install GitHub CLI locally.
+
+The .NET 10 upgrade uses SDK **10.0.400**, selected by global.json, and runtime **10.0.11**. CLI, Core, and Renderer target net10.0; the vendored Notion.Client retains netstandard2.0 compatibility. SDK and runtime version numbers are separate. Docker builds use the matching SDK image and the official .NET 10 runtime-deps images based on Ubuntu 24.04 (Noble). These runtime images support ARM32, so the linux-arm archive smoke test and all eight native release targets remain supported.
 
 The native Windows archive installer is a separate end-user script compatible with Windows PowerShell **5.1**. Users do not need the .NET SDK to run self-contained native archives or the Windows Docker launcher bundle.
 
 ## Version and build number
 
-[Version.props](../Version.props) is the shared source for the CLI and Core release version, currently `1.5.0`. [Directory.Build.props](../Directory.Build.props) and [Directory.Build.targets](../Directory.Build.targets) derive the application version fields from that value. The vendored `Notion.Client` keeps its upstream package version.
+[Version.props](../Version.props) is the shared source for the CLI, Core, and Renderer release version, currently `1.6.0`. [Directory.Build.props](../Directory.Build.props) and [Directory.Build.targets](../Directory.Build.targets) derive the application version fields from that value. The vendored `Notion.Client` keeps its upstream package version.
 
 For version `1.5.0`, build number `17`, and commit `<commit>`:
 
@@ -73,7 +75,7 @@ $commit = (git rev-parse HEAD).Trim()
 ./build/package.ps1 -Runtime linux-x64 -Version 1.5.0 -BuildNumber 17 -SourceRevisionId $commit -OutputDirectory ./publish/example/artifacts
 ```
 
-The script publishes the complete self-contained `net8.0` output, includes native dependencies, then adds the platform installer, README, repository `LICENSE` and `COPYRIGHT`, `VERSION.txt`, and `localnotion-release.json`. Native archives use the repository's GPL license. No old proprietary EULA, credentials, or private Docker state is copied. Repackaging a RID into the same local output directory replaces its archive.
+The script publishes the complete self-contained `net10.0` output, includes native dependencies, then adds the platform installer, README, repository `LICENSE`, `COPYRIGHT` and `COPYING.EXCEPTION`, `VERSION.txt`, and `localnotion-release.json`. LocalNotion remains GPL-licensed; Sphere10.VisualRenderer and other dependencies retain their separate licenses and notices. Preserve the renderer notices copied by its NuGet package in the published output. The [linking exception](../COPYING.EXCEPTION) covers only copyrights the named Grantors own or are authorized to license; any additional rights required from other contributors or third-party suppliers must be resolved before release. No old proprietary EULA, credentials, or private Docker state is copied. Repackaging a RID into the same local output directory replaces its archive.
 
 To package all supported RIDs locally:
 
@@ -86,6 +88,16 @@ foreach ($platform in $platforms.include) {
 
 Windows compatibility wrappers `publish-all.bat`, `publish-win-x64.bat`, and `publish-linux-x64.bat` call this same script and forward packaging options. They produce local files; they do not publish a release.
 
+### Renderer package dependency
+
+LocalNotion restores the pinned Sphere10.VisualRenderer binary NuGet package.
+Its source, tests, versioning, and pack/publish scripts belong to Sphere10
+Commercial. This workflow does not build or publish the renderer.
+
+Make the pinned package available to the developer/CI NuGet sources before
+building a LocalNotion release. See [renderer integration](../docs/renderer.md).
+The renderer's version changes independently of LocalNotion's release version.
+
 ### Validate an archive
 
 Run the smoke test on a host that can execute the packaged RID. For a local Windows x64 package of version 1.5.0:
@@ -96,6 +108,8 @@ $commit = (git rev-parse HEAD).Trim()
 ```
 
 The helper validates the extracted metadata and executable, then checks the CLI version and help output. Default extraction uses a unique directory under `publish/.smoke` and is cleaned afterward. `-SkipExecution` checks archive structure and identity when the local host cannot execute its RID. `-ExtractDirectory` requires a new directory and keeps the extraction for external checks. Neither option installs the application.
+
+To retain an existing Windows command bootstrap while using an installed native executable, configure `docker/install-cli.ps1 -NativeExecutable <absolute-executable-path> -NoPath`. The native package must already be deployed. The bootstrap preserves its Docker configuration and supports `LOCALNOTION_BACKEND=docker` for comparison tests; see [native bootstrap setup](../docker/README.md#use-the-existing-command-bootstrap-with-a-native-windows-executable).
 
 ### Docker and its Windows installer bundle
 
@@ -173,7 +187,7 @@ If the GHCR package already exists, its settings must allow this repository's wo
 
 ### Logs, artifacts, and failures
 
-Open [Actions → Build and release Local Notion](https://github.com/Sphere10/LocalNotion/actions/workflows/release.yml). The run title includes its build number. Open a failed job and step to see validation output; native jobs are named `Package <rid>`. Successful preview outputs appear in the run's **Artifacts** list, including `native-<rid>` and `docker-launcher`. Published downloads and notes appear on [GitHub Releases](https://github.com/Sphere10/LocalNotion/releases).
+Open [Actions → Build and release Local Notion](https://github.com/Sphere10/LocalNotion/actions/workflows/release.yml). The run title includes its build number. Open a failed job and step to see validation output; native jobs are named `Package <rid>`. Successful preview outputs appear in the run's **Artifacts** list, including `native-<rid>`, `docker-launcher`. Published downloads and notes appear on [GitHub Releases](https://github.com/Sphere10/LocalNotion/releases).
 
 Native and launcher workflow artifacts are retained for seven days; the saved tested Docker image is retained for one day. Retry failed publication jobs promptly in the same run so the exact tested outputs remain available. Fix a build/test failure before creating a new publishing attempt. If publication already created a draft, follow the identity and retry rules below; an expired or changed artifact is not permission to overwrite a release with rebuilt bytes.
 

@@ -2,6 +2,7 @@
 param(
     [string]$Image = 'local-notion:latest',
     [string]$InstallDirectory = (Join-Path $env:LOCALAPPDATA 'Sphere10\LocalNotion\bin'),
+    [string]$NativeExecutable,
     [switch]$BuildImage,
     [switch]$NoPath,
     [switch]$Uninstall
@@ -71,7 +72,6 @@ if ($Uninstall) {
     exit 0
 }
 
-$docker = Get-Command docker.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path -LiteralPath $compiler)) {
     $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
@@ -83,29 +83,47 @@ $config = if (Test-Path -LiteralPath $configPath) {
 } else {
     [pscustomobject]@{ image = $Image; stateVolume = 'local-notion-state'; repositories = @() }
 }
+if ($PSBoundParameters.ContainsKey('NativeExecutable')) {
+    if ([string]::IsNullOrWhiteSpace($NativeExecutable)) { throw 'NativeExecutable must name an existing absolute executable path.' }
+    $config | Add-Member -MemberType NoteProperty -Name nativeExecutable -Value $NativeExecutable -Force
+}
+$nativeTarget = [string]$config.nativeExecutable
+if (-not [string]::IsNullOrWhiteSpace($nativeTarget)) {
+    $nativeFullPath = [IO.Path]::GetFullPath($nativeTarget)
+    if (-not [IO.Path]::IsPathRooted($nativeTarget) -or [IO.Path]::GetPathRoot($nativeTarget) -ine [IO.Path]::GetPathRoot($nativeFullPath)) {
+        throw 'NativeExecutable must be an absolute executable path.'
+    }
+    if ($nativeFullPath -ieq (Join-Path $installRoot 'localnotion.exe')) { throw 'NativeExecutable cannot refer to this command launcher.' }
+    if (-not (Test-Path -LiteralPath $nativeFullPath -PathType Leaf)) { throw 'The configured native executable does not exist.' }
+    if ($BuildImage) { throw 'BuildImage cannot be combined with a configured native executable. Build or select the Docker image separately.' }
+    $config | Add-Member -MemberType NoteProperty -Name nativeExecutable -Value $nativeFullPath -Force
+}
 if ($PSBoundParameters.ContainsKey('Image')) { $config.image = $Image }
 $imageToInstall = $config.image
-if ([string]::IsNullOrWhiteSpace($imageToInstall)) { throw 'An image name is required.' }
+if ([string]::IsNullOrWhiteSpace($nativeTarget) -and [string]::IsNullOrWhiteSpace($imageToInstall)) { throw 'An image name is required.' }
 
-$imageExists = $false
-try {
-    & $docker.Source image inspect $imageToInstall *> $null
-    $imageExists = $LASTEXITCODE -eq 0
-} catch {
-    # Windows PowerShell 5.1 can turn Docker's missing-image stderr into an exception.
+if ([string]::IsNullOrWhiteSpace($nativeTarget)) {
+    $docker = Get-Command docker.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
     $imageExists = $false
-}
-if ($BuildImage -or -not $imageExists) {
-    $revision = 'unknown'
-    $gitCommand = Get-Command git.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($gitCommand) {
-        try {
-            $detectedRevision = & $gitCommand.Source -C $projectRoot rev-parse HEAD 2>$null
-            if ($LASTEXITCODE -eq 0) { $revision = $detectedRevision }
-        } catch { $revision = 'unknown' }
+    try {
+        & $docker.Source image inspect $imageToInstall *> $null
+        $imageExists = $LASTEXITCODE -eq 0
+    } catch {
+        # Windows PowerShell 5.1 can turn Docker's missing-image stderr into an exception.
+        $imageExists = $false
     }
-    & $docker.Source build --platform linux/amd64 --build-arg "VCS_REF=$revision" -t $imageToInstall $projectRoot
-    if ($LASTEXITCODE -ne 0) { throw 'The local Docker image could not be built. Start Docker Desktop in Linux-container mode and retry.' }
+    if ($BuildImage -or -not $imageExists) {
+        $revision = 'unknown'
+        $gitCommand = Get-Command git.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($gitCommand) {
+            try {
+                $detectedRevision = & $gitCommand.Source -C $projectRoot rev-parse HEAD 2>$null
+                if ($LASTEXITCODE -eq 0) { $revision = $detectedRevision }
+            } catch { $revision = 'unknown' }
+        }
+        & $docker.Source build --platform linux/amd64 --build-arg "VCS_REF=$revision" -t $imageToInstall $projectRoot
+        if ($LASTEXITCODE -ne 0) { throw 'The local Docker image could not be built. Start Docker Desktop in Linux-container mode and retry.' }
+    }
 }
 
 $sourceScript = Join-Path $PSScriptRoot 'localnotion-docker.ps1'
@@ -142,6 +160,11 @@ $manifest = [pscustomobject]@{
 if (-not $NoPath) { Set-CommandPath -Remove $false }
 
 Write-Host "Installed localnotion at $installRoot"
-Write-Host "Docker image: $imageToInstall"
+if ([string]::IsNullOrWhiteSpace($nativeTarget)) {
+    Write-Host "Docker image: $imageToInstall"
+} else {
+    Write-Host "Native executable: $nativeFullPath"
+    Write-Host "To use Docker, set LOCALNOTION_BACKEND=docker and invoke '$(Join-Path $installRoot 'localnotion.exe')' explicitly."
+}
 Write-Host 'Open a new terminal, change to a Notion data folder, and run localnotion --help.'
 Write-Host 'The background Compose sync service is managed separately.'

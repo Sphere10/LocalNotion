@@ -9,9 +9,10 @@
 using System;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
-using Sphere10.DRM;
+using Sphere10.Framework;
+using Sphere10.Framework.Application;
 
-namespace Sphere10.Framework.Application;
+namespace LocalNotion.CLI;
 
 
 public class ModuleConfiguration : ModuleConfigurationBase {

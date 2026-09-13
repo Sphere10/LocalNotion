@@ -96,6 +96,30 @@ In [LocalNotion.sln](../LocalNotion.sln), **Other > Docker** groups the launcher
 
 After editing the wrapper or launcher script, rerun `.\docker\install-cli.ps1` to compile and install the changes. It reuses an existing image. When the application source or Docker image definition changes, run `.\docker\install-cli.ps1 -Image local-notion:latest -BuildImage` to build and select the local source image.
 
+### Use the existing command bootstrap with a native Windows executable
+
+Deploy the complete Windows native package to its installation directory first. To keep the existing `%LOCALAPPDATA%\Sphere10\LocalNotion\bin\localnotion.exe` command and point it at the native application, run from a source checkout:
+
+```powershell
+.\docker\install-cli.ps1 -NativeExecutable 'C:\Program Files\Local Notion\localnotion.exe' -NoPath
+```
+
+The installer verifies that the target is an existing absolute file path and is not the bootstrap itself. It recompiles the bootstrap, stores `nativeExecutable` in the existing `localnotion-docker.json`, and preserves the Docker image, state volume, and repository mappings. Native installation and subsequent bootstrap updates do not require Docker or build an image. `-NoPath` keeps the existing command registration; use `Get-Command localnotion -All` to check which installation your shell selects.
+
+With `nativeExecutable` configured, the bootstrap launches it directly. Arguments, working directory, inherited standard streams, and native exit codes are preserved, including the native CLI's `-2` help exit code. The native executable handles Ctrl+C. `LOCALNOTION_TOKEN_FILE` is forwarded as `NOTION_API_KEY_FILE` when the latter is unset; the native application can also use a credential already saved in the repository. Repository-to-token-file mappings remain available to the Docker backend.
+
+Docker remains selectable for testing without changing the installed native target:
+
+```powershell
+$env:LOCALNOTION_BACKEND = 'docker'
+& "$env:LOCALAPPDATA\Sphere10\LocalNotion\bin\localnotion.exe" --version
+Remove-Item Env:LOCALNOTION_BACKEND
+```
+
+Call the bootstrap by its full path for this override when the native installation also appears on `PATH`; a shell that selects the native executable directly bypasses bootstrap settings.
+
+`LOCALNOTION_BACKEND=native` explicitly requires the configured native target. With no backend override and no `nativeExecutable`, the bootstrap keeps its original Docker behavior. Removing `nativeExecutable` from the configuration restores Docker as the default. The native target is configured separately from the image, so native updates do not replace a Docker image or start the background Compose service.
+
 ### Run commands against a repository
 
 Create an empty folder for a new repository, then initialize it:

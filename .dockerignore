@@ -1,5 +1,6 @@
 # Only application source and the entrypoint belong in the build context.
 **
+!global.json
 !Version.props
 !Directory.Build.props
 !Directory.Build.targets

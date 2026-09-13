@@ -1,1 +1,0 @@
-﻿{include://color_text.inc}

@@ -320,15 +320,19 @@ public class NginxMappingsGenerator(ILocalNotionRepository localNotionRepository
 		if (!Directory.Exists(cmsPath))
 			return;
 
-		var repoPath = LocalNotionRepository.Paths.GetRepositoryPath(FileSystemPathType.Absolute); 
-		var allRequiredFiles = LocalNotionRepository.CMSItems.Select(x => x.RenderPath).Select(x => Path.Join(repoPath, x));
-		allRequiredFiles = allRequiredFiles.Union(ExemptFiles.Select(x => Path.Combine(cmsPath, x)));
+		var repoPath = LocalNotionRepository.Paths.GetRepositoryPath(FileSystemPathType.Absolute);
+		var pathComparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+		var allRequiredFiles = LocalNotionRepository.CMSItems
+			.Select(item => item.RenderPath)
+			.Where(renderPath => !string.IsNullOrWhiteSpace(renderPath))
+			.Select(renderPath => Path.GetFullPath(renderPath, repoPath))
+			.ToHashSet(pathComparer);
+		allRequiredFiles.UnionWith(ExemptFiles.Select(file => Path.GetFullPath(file, cmsPath)));
 
-		var allActualFiles = Directory.EnumerateFiles(cmsPath);
-
-		foreach ( var file in allActualFiles.Except(allRequiredFiles)) {
-			File.Delete(file);
-		}
+		// Stored paths use portable separators; compare canonical file paths before deleting any renders.
+		foreach (var file in Directory.EnumerateFiles(cmsPath))
+			if (!allRequiredFiles.Contains(Path.GetFullPath(file)))
+				File.Delete(file);
 	}
 
 	public static async Task<string> GenerateNGinxFiles(ILocalNotionRepository localNotionRepository) {

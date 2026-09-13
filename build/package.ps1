@@ -116,7 +116,7 @@ $null = New-Item -ItemType Directory -Path $payloadDirectory -Force
 try {
     $publishArguments = @(
         'publish', (Join-Path $repoRoot 'LocalNotion.CLI/LocalNotion.CLI.csproj'),
-        '--configuration', 'Release', '--framework', 'net8.0', '--runtime', $Runtime,
+        '--configuration', 'Release', '--framework', 'net10.0', '--runtime', $Runtime,
         '--self-contained', 'true', '--output', $payloadDirectory,
         '-p:PublishSingleFile=true', '-p:PublishTrimmed=false', '-p:PublishReadyToRun=false',
         '-p:DebugSymbols=false', '-p:DebugType=None',
@@ -129,7 +129,7 @@ try {
     if (-not (Test-Path -LiteralPath (Join-Path $payloadDirectory $executableName) -PathType Leaf)) {
         throw "The published package is missing $executableName."
     }
-    Copy-Item -LiteralPath (Join-Path $repoRoot 'LICENSE'), (Join-Path $repoRoot 'COPYRIGHT') -Destination $payloadDirectory
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'LICENSE'), (Join-Path $repoRoot 'COPYRIGHT'), (Join-Path $repoRoot 'COPYING.EXCEPTION') -Destination $payloadDirectory
     $attachmentPlatform = if ($Runtime.StartsWith('win-')) { 'windows' } else { 'unix' }
     $attachmentDirectory = Join-Path $PSScriptRoot "attachments/$attachmentPlatform"
     if (-not (Test-Path -LiteralPath $attachmentDirectory -PathType Container)) {

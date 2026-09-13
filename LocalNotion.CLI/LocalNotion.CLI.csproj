@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<!-- Attribution/custom attributes stay in AssemblyInfo.cs; Directory.Build.targets generates versions only. -->
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+		<Nullable>annotations</Nullable>
 		<AssemblyName>localnotion</AssemblyName>
 		<!--<TrimmerDefaultAction>link</TrimmerDefaultAction>
 		<IsTrimmable>false</IsTrimmable>-->
@@ -14,9 +14,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Sphere10.Framework" Version="3.0.3" />
-	  <PackageReference Include="Sphere10.Framework.Application" Version="3.0.3" />
-	  <PackageReference Include="Sphere10.Framework.Data" Version="3.0.3" />
+	  <PackageReference Include="Sphere10.Framework" Version="3.1.2" />
+	  <PackageReference Include="Sphere10.Framework.Application" Version="3.1.2" />
+	  <PackageReference Include="Sphere10.Framework.Data" Version="3.1.2" />
 	</ItemGroup>
 
 	<!--<ItemGroup>
@@ -32,6 +32,12 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\LocalNotion.Core\LocalNotion.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\LICENSE" Link="LICENSE" TargetPath="LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+		<None Include="..\COPYRIGHT" Link="COPYRIGHT" TargetPath="COPYRIGHT" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+		<None Include="..\COPYING.EXCEPTION" Link="COPYING.EXCEPTION" TargetPath="COPYING.EXCEPTION" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
 	</ItemGroup>
 
 </Project>

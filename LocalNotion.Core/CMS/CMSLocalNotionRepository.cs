@@ -46,11 +46,13 @@ public class CMSLocalNotionRepository : LocalNotionRepository, ICmsLocalNotionRe
 		CheckLoaded();
 		Guard.Ensure(Registry.CMSItemsBySlug.ContainsKey(cmsItem.Slug), $"CMS Item '{cmsItem.Slug}' does not exist");
 		Registry.CMSItemsBySlug[cmsItem.Slug] = cmsItem;
+		RequiresSave = true;
 	}
 
 	public void AddOrUpdateCMSItem(CMSItem cmsItem) {
 		CheckLoaded();
 		Registry.CMSItemsBySlug[cmsItem.Slug] = cmsItem;
+		RequiresSave = true;
 	}
 
 	public void RemoveCmsItem(string slug) {
@@ -346,14 +348,21 @@ public class CMSLocalNotionRepository : LocalNotionRepository, ICmsLocalNotionRe
 	}
 	
 	private void TouchSingularCmsItem(LocalNotionPage page) {
-		if (!CalculateCmsItem(page.CMSProperties.CustomSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords))
-			throw new InvalidOperationException($"Not a valid CMS Item: {page.Title} ({page.ID})");
+		if (!CalculateCmsItem(page.CMSProperties.CustomSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords)) {
+			// Draft, hidden and scheduled pages remain renderable source resources without a public CMS item.
+			if (ContainsCmsItem(slug))
+				RemoveCmsItem(slug);
+			return;
+		}
 		AddOrUpdateCmsItem(type, slug, auth, title, description, image, parts, keywords);
 	}
 
 	private void TouchContainerCmsItem(string containerItemSlug) {
-		if (!CalculateCmsItem(containerItemSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords))
-			throw new InvalidOperationException($"Not a valid container CMS Item: {containerItemSlug}");
+		if (!CalculateCmsItem(containerItemSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords)) {
+			if (ContainsCmsItem(slug))
+				RemoveCmsItem(slug);
+			return;
+		}
 
 		if (parts.Length > 0) {
 			AddOrUpdateCmsItem(type, slug, auth, title, description, image, parts, keywords);
@@ -396,10 +405,11 @@ public class CMSLocalNotionRepository : LocalNotionRepository, ICmsLocalNotionRe
 	private void RecalculateAllFraming() {
 		foreach (var render in CMSItems) {
 			var content = CMSDatabase.GetContent(render.Slug);
-			var headerPageID = content.Header?.ID;
-			var menuPageID = content.NavBar?.ID;
-			var footerPageID = content.Footer?.ID;
-			var internalID = content.Internal?.ID;
+			// A stored CMS item can outlive its published content node during a pull.
+			var headerPageID = content?.Header?.ID;
+			var menuPageID = content?.NavBar?.ID;
+			var footerPageID = content?.Footer?.ID;
+			var internalID = content?.Internal?.ID;
 
 			if (render.HeaderID != headerPageID || render.MenuID != menuPageID || render.FooterID != footerPageID || render.InternalID != internalID ) {
 				render.HeaderID = headerPageID;

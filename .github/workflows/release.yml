@@ -17,6 +17,7 @@ on:
     paths:
       - '.github/workflows/**'
       - 'build/**'
+      - 'global.json'
       - 'Version.props'
       - 'Directory.Build.*'
       - 'Dockerfile'
@@ -86,7 +87,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: 'global.json'
       - name: Build complete self-contained package
         run: |
           ./build/package.ps1 -Runtime $env:TARGET_RUNTIME -Version $env:RELEASE_VERSION -BuildNumber $env:BUILD_NUMBER -SourceRevisionId $env:SOURCE_REVISION -OutputDirectory ./publish/artifacts
@@ -104,14 +105,24 @@ jobs:
         run: |
           ./build/test-package.ps1 -ArchivePath ./publish/artifacts/localnotion-linux-arm.tar.gz -Runtime linux-arm -Version $env:RELEASE_VERSION -BuildNumber $env:BUILD_NUMBER -SourceRevisionId $env:SOURCE_REVISION -SkipExecution -ExtractDirectory ./publish/arm-smoke
           $mount = "type=bind,source=$((Resolve-Path ./publish/arm-smoke).Path),target=/app,readonly"
-          $result = & docker run --rm --network none --platform linux/arm/v7 --mount $mount mcr.microsoft.com/dotnet/runtime-deps:8.0-bookworm-slim /app/localnotion --version 2>&1
+          $result = & docker run --rm --network none --platform linux/arm/v7 --mount $mount mcr.microsoft.com/dotnet/runtime-deps:10.0-noble /app/localnotion --version 2>&1
           if ($LASTEXITCODE -ne 0) { throw ($result -join [Environment]::NewLine) }
           $expected = "$env:RELEASE_VERSION+build.$env:BUILD_NUMBER.sha.$env:SOURCE_REVISION"
           if (($result -join [Environment]::NewLine) -notlike "*$expected*") { throw 'ARM32 version does not match the release.' }
           $result
-      - name: Repository path regression
+      - name: LocalNotion repository and renderer-integration regressions
         if: matrix.rid == 'win-x64' || matrix.rid == 'linux-x64'
-        run: dotnet run --project tests/LocalNotion.PathCompatibility
+        run: |
+          dotnet test LocalNotion.sln -c Release --logger "trx;LogFilePrefix=regressions" --results-directory ./TestResults
+          if ($LASTEXITCODE -ne 0) { throw 'NUnit regression tests failed.' }
+      - name: Upload regression test results
+        if: always() && (matrix.rid == 'win-x64' || matrix.rid == 'linux-x64')
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results-${{ matrix.rid }}
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: native-${{ matrix.rid }}

@@ -120,8 +120,27 @@ try {
         '--self-contained', 'true', '--output', $payloadDirectory,
         '-p:PublishSingleFile=true', '-p:PublishTrimmed=false', '-p:PublishReadyToRun=false',
         '-p:DebugSymbols=false', '-p:DebugType=None',
-        "-p:ReleaseVersion=$Version", "-p:BuildNumber=$BuildNumber", "-p:SourceRevisionId=$SourceRevisionId"
+        "-p:ReleaseVersion=$Version", "-p:SourceRevisionId=$SourceRevisionId"
     )
+    $ciBuild = $env:GITHUB_ACTIONS -eq 'true' -or $env:TF_BUILD -eq 'true' -or $env:CI -eq 'true'
+    if ($BuildNumber -eq 0 -and -not $ciBuild) {
+        $counterFile = Join-Path $repoRoot 'LOCAL-BUILD-NUMBER'
+        $mutex = [Threading.Mutex]::new($false, 'Sphere10.LocalNotion.LocalBuildNumber')
+        try {
+            try { $null = $mutex.WaitOne() } catch [Threading.AbandonedMutexException] { }
+            $current = 0
+            if (Test-Path -LiteralPath $counterFile) {
+                [void][int]::TryParse((Get-Content -LiteralPath $counterFile -Raw).Trim(), [ref]$current)
+            }
+            if ($current -ge 65534) { throw 'Local build number exceeded 65534.' }
+            $BuildNumber = $current + 1
+            [IO.File]::WriteAllText($counterFile, "$BuildNumber")
+        } finally {
+            $mutex.ReleaseMutex()
+            $mutex.Dispose()
+        }
+    }
+    $publishArguments += "-p:BuildNumber=$BuildNumber"
     & dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed for $Runtime (exit $LASTEXITCODE)." }
 
@@ -148,7 +167,7 @@ try {
         buildNumber = $BuildNumber
         commit = $SourceRevisionId
         runtime = $Runtime
-        informationalVersion = "$Version+build.$BuildNumber.sha.$SourceRevisionId"
+        informationalVersion = "$($Version.Split('-')[0]).$BuildNumber"
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $payloadDirectory 'localnotion-release.json') -Encoding utf8NoBOM
 
     $stagedArchive = Join-Path $stageDirectory $archiveName

@@ -49,12 +49,12 @@ For version `1.5.0`, build number `17`, and commit `<commit>`:
 | --- | --- |
 | `Version` and `PackageVersion` | `1.5.0` |
 | `AssemblyVersion` and `FileVersion` | `1.5.0.17` |
-| `InformationalVersion` and CLI `--version` identity | `1.5.0+build.17.sha.<commit>` |
+| `InformationalVersion` and CLI `--version` identity | `1.5.0.17` |
 | Native archive `VERSION.txt` | `1.5.0-build.17` |
 
-Prereleases retain their suffix in the release and informational versions; assembly/file versions use the numeric release components. The commit suffix is included when source control information is available. Packaging resolves Git HEAD unless `-SourceRevisionId` is supplied explicitly.
+Prereleases retain their suffix in the NuGet/package version; assembly, file, and CLI `--version` use the four-part numeric form `major.minor.patch.build`. The last number is the build number. Git SHA is not part of `--version`; packaging still records the commit in `localnotion-release.json`. Packaging resolves Git HEAD unless `-SourceRevisionId` is supplied explicitly.
 
-Normal local and Visual Studio builds use build number **0**. Compiling does not edit a counter or increment the version. CI resolves `github.run_number` once in the metadata job and passes the same version, number, and commit to every native package, Docker image, and launcher bundle.
+Local CLI builds allocate the next build number from `LOCAL-BUILD-NUMBER` in the solution folder (gitignored). Pass `-p:BuildNumber=N` to stamp a specific number instead. CI resolves `github.run_number` once in the metadata job and passes that same number to every native package, Docker image, and launcher bundle; it does not touch the local counter.
 
 The workflow run number increases for each new run of this workflow. Pull-request and preview runs consume numbers too, so published release build numbers can have gaps. Rerunning jobs in the same workflow run keeps that run number; a new dispatch starts a new number. This is a workflow counter, not a counter of successful releases.
 
@@ -68,7 +68,7 @@ From the repository root in PowerShell:
 ./build/package.ps1 -Runtime win-x64
 ```
 
-This uses the version in `Version.props`, build `0`, and Git HEAD. The archive is written to `publish/<version>/artifacts/localnotion-win-x64.zip`. To supply a build identity and output directory explicitly:
+This uses the version in `Version.props`, the next solution-folder build number, and Git HEAD. The archive is written to `publish/<version>/artifacts/localnotion-win-x64.zip`. To supply a build identity and output directory explicitly:
 
 ```powershell
 $commit = (git rev-parse HEAD).Trim()

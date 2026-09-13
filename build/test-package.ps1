@@ -139,7 +139,7 @@ try {
             throw "The archive is missing $requiredFile."
         }
     }
-    $expectedInformationalVersion = "$Version+build.$BuildNumber.sha.$($SourceRevisionId.ToLowerInvariant())"
+    $expectedInformationalVersion = "$($Version.Split('-')[0]).$BuildNumber"
     $metadata = Get-Content -LiteralPath (Join-Path $extractionDirectory 'localnotion-release.json') -Raw | ConvertFrom-Json
     if ($metadata.version -cne $Version -or $metadata.buildNumber -ne $BuildNumber -or
         $metadata.commit -cne $SourceRevisionId.ToLowerInvariant() -or $metadata.runtime -cne $Runtime -or

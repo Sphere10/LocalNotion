@@ -107,7 +107,7 @@ jobs:
           $mount = "type=bind,source=$((Resolve-Path ./publish/arm-smoke).Path),target=/app,readonly"
           $result = & docker run --rm --network none --platform linux/arm/v7 --mount $mount mcr.microsoft.com/dotnet/runtime-deps:10.0-noble /app/localnotion --version 2>&1
           if ($LASTEXITCODE -ne 0) { throw ($result -join [Environment]::NewLine) }
-          $expected = "$env:RELEASE_VERSION+build.$env:BUILD_NUMBER.sha.$env:SOURCE_REVISION"
+          $expected = "$($env:RELEASE_VERSION.Split('-')[0]).$env:BUILD_NUMBER"
           if (($result -join [Environment]::NewLine) -notlike "*$expected*") { throw 'ARM32 version does not match the release.' }
           $result
       - name: LocalNotion repository and renderer-integration regressions
@@ -163,7 +163,7 @@ jobs:
           $image = "$($env:IMAGE):$env:RELEASE_VERSION"
           $version = & docker run --rm --network none $image --version 2>&1
           if ($LASTEXITCODE -ne 0) { throw ($version -join [Environment]::NewLine) }
-          $expected = "$env:RELEASE_VERSION+build.$env:BUILD_NUMBER.sha.$env:SOURCE_REVISION"
+          $expected = "$($env:RELEASE_VERSION.Split('-')[0]).$env:BUILD_NUMBER"
           if (($version -join [Environment]::NewLine) -notlike "*$expected*") { throw 'Docker version does not match the release.' }
           $version
           $help = & docker run --rm --network none $image --help 2>&1

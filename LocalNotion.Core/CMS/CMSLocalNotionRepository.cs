@@ -350,6 +350,7 @@ public class CMSLocalNotionRepository : LocalNotionRepository, ICmsLocalNotionRe
 	private void TouchSingularCmsItem(LocalNotionPage page) {
 		if (!CalculateCmsItem(page.CMSProperties.CustomSlug, out var slug, out var auth, out var type, out var title, out var description, out var image, out var parts, out var keywords)) {
 			// Draft, hidden and scheduled pages remain renderable source resources without a public CMS item.
+			Logger.Warning($"Skipping '{page.Title}' ({page.ID}): not a valid CMS item.");
 			if (ContainsCmsItem(slug))
 				RemoveCmsItem(slug);
 			return;

@@ -795,12 +795,15 @@ $@"Local Notion Status:
 			var renderer = new RenderingManager(repo, repo.Logger);
 			using var renderBatch = renderer.BeginBatch();
 			var toRender = (arguments.RenderAll ? LocalNotionHelper.FilterRenderableResources(repo.Resources).Select(x => x.ID) : arguments.Objects.Select(x => x.ToString())).ToHashSet();
-			if (!toRender.Any()) {
+			var cmsItemsToRender = (arguments.RenderAll ? repo.CMSItems : repo.CMSItems.Where(x => x.ReferencesAnyResources(toRender))).ToArray();
+			// CMS sites host cms/ output. --all should re-render those pages, not every source resource.
+			if (arguments.RenderAll && cmsItemsToRender.Length > 0)
+				toRender.Clear();
+			if (toRender.Count == 0 && cmsItemsToRender.Length == 0) {
 				consoleLogger.Warning("Nothing to render");
 				return Constants.ERRORCODE_OK;
 			}
 
-			var cmsItemsToRender = (arguments.RenderAll ? repo.CMSItems : repo.CMSItems.Where(x => x.ReferencesAnyResources(toRender))).ToArray();
 			renderer.PrepareRenderPaths(toRender, arguments.RenderOutput, cmsItemsToRender, arguments.FaultTolerant, cancellationToken);
 
 			foreach (var resource in toRender) {
@@ -929,6 +932,10 @@ $@"Local Notion Status:
 
 		logger.Info("Committing changes to git");
 		if (!await gitSentry.Commit($"Content updates: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}", cancellationToken)) {
+			if (gitSentry.Output.Contains("nothing to commit", StringComparison.OrdinalIgnoreCase)) {
+				logger.Info("No git changes to commit");
+				return true;
+			}
 			logger.Error($"git failed with error:{Environment.NewLine}{gitSentry.Output.Tabbify()}");
 			return false;
 		}

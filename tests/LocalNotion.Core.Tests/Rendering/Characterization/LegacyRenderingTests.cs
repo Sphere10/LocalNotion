@@ -114,7 +114,7 @@ public class LegacyRenderingTests {
 
 	[Test]
 	public void HtmlMainMatchesLegacyDom() {
-		var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Rendering", "Characterization", "legacy-main.txt"));
+		var expected = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Rendering", "Characterization", "legacy-main.txt")).Replace("\r\n", "\n");
 		var html = new R.HtmlRenderer().Render(_htmlModel, new R.RenderOptions()).Html;
 		var main = new HtmlParser().ParseDocument(html).QuerySelector("main");
 		Assert.That(main, Is.Not.Null);

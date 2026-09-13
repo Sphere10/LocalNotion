@@ -158,21 +158,28 @@ function Get-GitHubJson {
 }
 
 function Get-ReleaseForTag {
-    param([switch] $Require)
-    # The tag endpoint serves published releases. Authenticated list responses
-    # also include drafts, which may not have a discoverable tag endpoint yet.
-    $published = Get-GitHubJson "repos/$repository/releases/tags/$tag" -AllowNotFound
-    if ($null -ne $published) { return $published }
-    $matchingReleases = [Collections.Generic.List[object]]::new()
-    for ($page = 1; ; $page++) {
-        $releases = @(Get-GitHubJson "repos/$repository/releases?per_page=100&page=$page")
-        foreach ($candidateRelease in $releases) {
-            if ($candidateRelease.tag_name -ceq $tag) { $matchingReleases.Add($candidateRelease) }
+    param(
+        [switch] $Require,
+        [ValidateRange(1,100)][int] $Attempts = 1,
+        [ValidateRange(0,60000)][int] $RetryDelayMilliseconds = 0
+    )
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        # The tag endpoint serves published releases. Authenticated list responses
+        # also include drafts, which may not have a discoverable tag endpoint yet.
+        $published = Get-GitHubJson "repos/$repository/releases/tags/$tag" -AllowNotFound
+        if ($null -ne $published) { return $published }
+        $matchingReleases = [Collections.Generic.List[object]]::new()
+        for ($page = 1; ; $page++) {
+            $releases = @(Get-GitHubJson "repos/$repository/releases?per_page=100&page=$page")
+            foreach ($candidateRelease in $releases) {
+                if ($candidateRelease.tag_name -ceq $tag) { $matchingReleases.Add($candidateRelease) }
+            }
+            if ($releases.Count -lt 100) { break }
         }
-        if ($releases.Count -lt 100) { break }
+        if ($matchingReleases.Count -gt 1) { throw "Multiple releases or drafts match $tag. Resolve the duplicate drafts before publishing." }
+        if ($matchingReleases.Count -eq 1) { return $matchingReleases[0] }
+        if ($attempt -lt $Attempts -and $RetryDelayMilliseconds -gt 0) { Start-Sleep -Milliseconds $RetryDelayMilliseconds }
     }
-    if ($matchingReleases.Count -gt 1) { throw "Multiple releases or drafts match $tag. Resolve the duplicate drafts before publishing." }
-    if ($matchingReleases.Count -eq 1) { return $matchingReleases[0] }
     if ($Require) { throw "Could not find the release or draft for $tag." }
     return $null
 }
@@ -298,7 +305,7 @@ if ($null -eq $release) {
     }
     if ($prerelease) { $arguments += '--prerelease' }
     $null = Invoke-Tool $gh $arguments
-    $release = Get-ReleaseForTag -Require
+    $release = Get-ReleaseForTag -Require -Attempts 10 -RetryDelayMilliseconds 2000
     if (-not $release.draft -or -not ([string]$release.body).Contains($identity)) { throw "Created release $tag is not the expected matching draft." }
 }
 

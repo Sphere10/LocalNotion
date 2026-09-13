@@ -37,6 +37,7 @@ function Test-ReleaseLookup {
         if ($AllowNotFound) { throw 'List errors must never be treated as an absent draft.' }
         if ($Scenario -eq 'list-failure') { throw 'GitHub list request failed: HTTP 403.' }
         if ($Scenario -eq 'missing') { return }
+        if ($Scenario -eq 'delayed-draft' -and @($calls | Where-Object { $_.StartsWith("repos/$repository/releases?per_page=") }).Count -eq 1) { return }
         if ($Scenario -eq 'paginated-draft' -and $Endpoint.EndsWith('page=1')) {
             foreach ($index in 1..100) { [pscustomobject]@{ id = 1000 + $index; tag_name = "v0.0.$index"; draft = $false } }
             return
@@ -47,7 +48,10 @@ function Test-ReleaseLookup {
     . ([scriptblock]::Create($Definition))
     $failure = $null
     $result = $null
-    try { $result = Get-ReleaseForTag -Require:($Scenario -eq 'missing') }
+    try {
+        if ($Scenario -eq 'delayed-draft') { $result = Get-ReleaseForTag -Require -Attempts 2 }
+        else { $result = Get-ReleaseForTag -Require:($Scenario -eq 'missing') }
+    }
     catch { $failure = $_.Exception.Message }
     switch ($Scenario) {
         'published' {
@@ -58,6 +62,9 @@ function Test-ReleaseLookup {
         }
         'paginated-draft' {
             if ($failure -or $result.id -ne 2 -or $calls.Count -ne 3) { throw 'Draft on the second page was not found.' }
+        }
+        'delayed-draft' {
+            if ($failure -or $result.id -ne 2 -or $calls.Count -ne 4) { throw 'Delayed draft lookup was not retried.' }
         }
         'duplicates' {
             if ($failure -notlike 'Multiple releases or drafts*') { throw 'Duplicate drafts were not rejected.' }
@@ -72,6 +79,6 @@ function Test-ReleaseLookup {
     Write-Host "Passed release discovery: $Scenario."
 }
 
-foreach ($scenario in @('published', 'draft', 'paginated-draft', 'duplicates', 'missing', 'list-failure')) {
+foreach ($scenario in @('published', 'draft', 'paginated-draft', 'delayed-draft', 'duplicates', 'missing', 'list-failure')) {
     Test-ReleaseLookup -Scenario $scenario -Definition $lookup.Extent.Text
 }

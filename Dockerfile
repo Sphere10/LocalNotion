@@ -6,6 +6,7 @@ ARG BUILD_NUMBER=0
 ARG VCS_REF=
 WORKDIR /src
 COPY global.json Version.props Directory.Build.props Directory.Build.targets ./
+COPY LICENSE COPYRIGHT COPYING.EXCEPTION ./
 COPY LocalNotion.CLI/LocalNotion.CLI.csproj LocalNotion.CLI/
 COPY LocalNotion.Core/LocalNotion.Core.csproj LocalNotion.Core/
 COPY Notion.Client/Notion.Client.csproj Notion.Client/

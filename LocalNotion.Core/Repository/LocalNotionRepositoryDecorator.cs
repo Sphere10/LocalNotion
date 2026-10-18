@@ -71,6 +71,8 @@ public abstract class LocalNotionRepositoryDecorator : ILocalNotionRepository {
 
 	public virtual Task SaveAsync() => InternalRepository.SaveAsync();
 
+	public virtual void UpdateGitSettings(bool? enabled = null, bool? push = null) => InternalRepository.UpdateGitSettings(enabled, push);
+
 	public virtual Task ClearAsync() => InternalRepository.ClearAsync();
 
 	public virtual Task CleanAsync() => InternalRepository.CleanAsync();

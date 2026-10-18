@@ -1,4 +1,10 @@
 <Project>
+	<PropertyGroup>
+		<!-- Public Framework 3.1.2 still bundles DRM; use the clean source by default. -->
+		<UseSphere10FrameworkSource Condition="'$(UseSphere10FrameworkSource)' == ''">true</UseSphere10FrameworkSource>
+		<Sphere10FrameworkRoot Condition="'$(Sphere10FrameworkRoot)' == ''">$(MSBuildThisFileDirectory)../Framework</Sphere10FrameworkRoot>
+		<!-- Package mode requires an explicitly supplied, separately verified clean version. -->
+	</PropertyGroup>
   <!-- The vendored Notion.Client keeps its upstream version and package identity. -->
   <PropertyGroup>
     <IsLocalNotionProduct Condition="'$(MSBuildProjectName)' == 'LocalNotion.CLI' Or '$(MSBuildProjectName)' == 'LocalNotion.Core'">true</IsLocalNotionProduct>

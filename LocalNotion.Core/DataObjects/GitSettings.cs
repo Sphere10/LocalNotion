@@ -6,7 +6,9 @@
 //
 // This notice must not be removed when duplicating this file or its contents, in whole or in part.
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LocalNotion.Core;
 
@@ -18,6 +20,8 @@ public class GitSettings {
 	[JsonProperty("push")]
 	public bool Push { get; set; }
 
-	public static GitSettings Default { get; set; } = new ();
+	[JsonExtensionData]
+	public IDictionary<string, JToken> AdditionalData { get; set; }
 
+	public static GitSettings Default { get; set; } = new ();
 }

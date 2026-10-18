@@ -8,6 +8,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Sphere10.Framework;
 using Sphere10.Framework.Application;
@@ -15,11 +16,21 @@ using Sphere10.Framework.Application;
 namespace LocalNotion.CLI;
 
 
-public class ModuleConfiguration : ModuleConfigurationBase {
+public class ModuleConfiguration : Sphere10.Framework.Application.ModuleConfiguration {
 
 	public override int Priority => int.MinValue; // last to execute
 
 	public override void RegisterComponents(IServiceCollection serviceCollection) {
+		base.RegisterComponents(serviceCollection);
+		// LocalNotion does not track application usage or store encrypted quota data.
+		// Keep the standard lifecycle/settings services without requiring a product secret.
+		foreach (var registration in serviceCollection.Where(x =>
+			x.ServiceType == typeof(IProductUsageServices) ||
+			x.ImplementationType == typeof(StandardHelpServices) ||
+			x.ImplementationType == typeof(ProductUsageInformationTokenResolver) ||
+			x.ImplementationType == typeof(IncrementUsageByOneInitializer)).ToArray())
+			serviceCollection.Remove(registration);
+
 		if (!serviceCollection.HasImplementationFor<IUserInterfaceServices>())
 			serviceCollection.AddSingleton<IUserInterfaceServices, ConsoleApplicationUserInterfaceServices>();
 

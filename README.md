@@ -1,5 +1,10 @@
 # Local Notion
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/branding/local-notion-logo-dark.svg">
+  <img src="assets/branding/local-notion-logo.svg" alt="Local Notion" width="420">
+</picture>
+
 **[Product page and documentation](https://sphere10.com/products/localnotion)**
 
 Local Notion is an open-source command-line tool for keeping Notion content on your own storage and using it for backups, offline reading, websites, and applications.
@@ -21,7 +26,7 @@ Workspace restore is listed as **coming soon** on the [Local Notion product page
 
 ## Standalone renderer
 
-LocalNotion uses the independently versioned proprietary Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md).
+LocalNotion uses the independently versioned MIT-licensed Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md).
 
 ## Native downloads
 
@@ -39,6 +44,8 @@ Download a native archive to run Local Notion directly on Windows, Linux, or mac
 | macOS Apple Silicon | [localnotion-osx-arm64.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-osx-arm64.tar.gz) |
 
 Each unified release includes release notes, [SHA-256 checksums](https://github.com/Sphere10/LocalNotion/releases/latest/download/SHA256SUMS.txt), and [release metadata](https://github.com/Sphere10/LocalNotion/releases/latest/download/release.json). Browse [all releases](https://github.com/Sphere10/LocalNotion/releases) for earlier versions.
+
+See the [changelog](CHANGELOG.md) for command, CMS and packaging changes in version 1.7.0.
 
 Extract the complete archive and keep native libraries and supporting files beside the executable. Run `.\localnotion.exe --help` on Windows or `./localnotion --help` on Linux/macOS for portable use. A separate .NET installation is not required.
 
@@ -59,6 +66,17 @@ Use the [Local Notion product page](https://sphere10.com/products/localnotion) f
 - [How Local Notion Works](https://sphere10.com/products/localnotion/how-local-notion-works): repositories, stored files, themes, and rendering profiles.
 - [Getting Started](https://sphere10.com/products/localnotion/getting-started): create a Notion integration and grant it access to your content.
 - [Local Notion Manual](https://sphere10.com/products/localnotion/local-notion-manual): installation, CLI commands, and rendering options.
+- [CMS guide](docs/cms/index.md): create a website database, understand its fields, compose pages and shared framing, select themes, and publish a Notion-authored website.
+
+### Create a website CMS
+
+Available from Local Notion **1.7.0**, `create-cms` creates one empty Notion database with the canonical website schema and preset Type, Status, Tags, and Themes options. Connect your Notion integration to the intended parent page first. Put its token in a private file and set `NOTION_API_KEY_FILE` to that file's path, then run:
+
+```bash
+localnotion create-cms --parent <notion-page-id> --title "My Website"
+```
+
+The command prints the new database ID and URL. It leaves zero active content rows; one temporary setup row is retained in Notion's Trash to work around its 100-option request limit. It does not copy existing website content, initialize a local repository, or publish a website. See [Create a CMS](docs/cms/create-a-cms.md) for credentials, required permissions, version availability, and the next steps. [Build your first website](docs/cms/first-website.md) provides a complete example.
 
 ## Build From Source
 
@@ -70,27 +88,53 @@ Use the [Local Notion product page](https://sphere10.com/products/localnotion) f
 
 > **Note:** This repository includes projects targeting both **.NET 10** and **.NET Standard 2.0**. Install the .NET 10 SDK selected by global.json to build the full solution.
 
+### Framework dependency and build modes
+
+LocalNotion has no Enterprise package, license activation, repository quota or
+page quota. It uses the MIT Framework application lifecycle and the independently
+versioned MIT Sphere10.VisualRenderer 3.1.3 package.
+
+The default build uses **post-DRM-extraction Framework source** from a sibling
+`../Framework` directory. Set `Sphere10FrameworkRoot` to use another checkout.
+It must contain `src/Sphere10.Framework`, `src/Sphere10.Framework.Data` and
+`src/Sphere10.Framework.Application`, with the DRM implementation removed from
+Application. No Enterprise checkout, private package feed or product key is needed.
+
+**Availability boundary (18 October 2026):** public Framework NuGet packages stop
+at 3.1.2; that Application package still contains legacy DRM and is not supported.
+The clean 3.1.3 source was verified from a local checkout with unpublished
+post-extraction changes. A fresh public Framework clone has not been verified to
+contain those changes. Until the clean source or packages are published, obtain
+the matching clean source from its maintainer; a plain public clone is not a
+proven substitute. This source change does not update installed LocalNotion
+executables or publish a release.
+
 ### Build (CLI)
 
-From the repository root:
+From the repository root, with the clean Framework checkout available:
 
 ```bash
-# Restore dependencies
-dotnet restore
-
-# Debug build
-dotnet build -c Debug
-
-# Release build
-dotnet build -c Release
+dotnet build LocalNotion.sln -c Release -p:BuildNumber=0 -p:BuildRevision=0
+dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Release -p:BuildNumber=0 -p:BuildRevision=0
 ```
+
+For a different source location, add
+`-p:Sphere10FrameworkRoot=/absolute/path/to/Framework`. Explicit build numbers
+avoid incrementing either checkout's local build counter.
+
+Package mode is retained for a **separately produced and verified clean package
+set**, without a source checkout. Set both
+`-p:UseSphere10FrameworkSource=false` and
+`-p:Sphere10FrameworkVersion=<exact-clean-version>` for restore, build and test.
+The selected version is exact, must be 3.1.3 or later, and must not be an Enterprise
+package. There is no fallback to 3.1.2 or an assumed public 3.1.3 package. Supply a
+NuGet source containing all three matching clean packages before using this mode;
+source-mode verification does not prove public-package availability.
 
 ### Run
 
-You can run the CLI project directly:
-
 ```bash
-dotnet run --project LocalNotion.CLI/LocalNotion.CLI.csproj -c Debug -- --help
+dotnet run --project LocalNotion.CLI/LocalNotion.CLI.csproj -c Debug -p:BuildNumber=0 -p:BuildRevision=0 -- --help
 ```
 
 ### Build (Visual Studio)
@@ -150,6 +194,15 @@ localnotion sync --all -f 10
 
 For a repository initialized with `--git`, Local Notion stages and commits local changes after supported operations. With `--git-push`, it also pushes to the configured upstream. Git identity, remote configuration, and authentication must be available to the account running Local Notion.
 
+Local Notion **1.7.0 and later** provides `localnotion git` to inspect or change these settings without initializing, committing or pushing:
+
+```sh
+localnotion git --path "./website"
+localnotion git --path "./website" --enabled true --push false
+```
+
+Earlier releases, including `v1.6.3` (`1.6.3.7`), do not include this command. Run `localnotion git --help` to check your selected executable. See [Git configuration](docs/git.md) for all options, publication effects and standard Git setup.
+
 Local Notion passes `-c safe.directory=<selected-repository>` to each Git command. This trusts the explicitly selected repository for that command only, including when restored files, a different operating-system account, or a container mount gives the repository a different owner. It does not change global or system Git configuration or trust every repository. This behavior is shared by native Windows/Linux builds and Docker.
 
 Git's `detected dubious ownership` error is an ownership check, not a timeout or synchronization delay; it can stop staging before commit or push is reached. See [Git's safe.directory documentation](https://git-scm.com/docs/git-config#Documentation/git-config.txt-safedirectory). Update Local Notion using the [native downloads](#native-downloads) or [Docker setup instructions](#get-started-with-docker).
@@ -169,6 +222,8 @@ localnotion render --all
 ```
 status     Provides status of the Local Notion repository
 init       Creates a Local Notion repository
+git        Displays or changes repository Git settings
+create-cms Creates an empty Notion website database with the canonical CMS schema
 clean      Cleans your local Notion repository by removing dangling pages, files and databases
 remove     Remove resources from a Local Notion repository
 list       Lists objects from Notion which can be pulled into Local Notion
@@ -176,7 +231,6 @@ sync       Synchronizes a Local Notion repository with Notion (until process man
 pull       Pulls Notion objects into a Local Notion repository
 render     Renders a Local Notion object (using local state only)
 prune      Removes objects from a Local Notion that no longer exist in Notion
-license    Manages Local Notion license
 help       Display more information on a specific command
 version    Display version information
 ```
@@ -217,7 +271,7 @@ A Local Notion repository contains:
 
 ## Independent rendering
 
-Rendering is supplied by Sphere10.VisualRenderer, maintained separately in Sphere10 Commercial. See [rendering integration](docs/renderer.md) and [theme overrides](docs/renderer-themes.md).
+Rendering is supplied by the independently versioned MIT-licensed Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md) and [theme overrides](docs/renderer-themes.md).
 
 ## Troubleshooting
 
@@ -240,7 +294,7 @@ Maintainers: see the [release and deployment guide](build/README.md) for CI/CD, 
 
 ## License
 
-LocalNotion source code is licensed under the **GNU GPL v3.0** (or later), except separately licensed materials. The proprietary **Sphere10.VisualRenderer** binary dependency has its own license permitting royalty-free use and redistribution in commercial and open-source projects, subject to its terms and other applicable licenses.
+LocalNotion source code is licensed under the **GNU GPL v3.0** (or later), except separately licensed materials. **Sphere10.VisualRenderer 3.1.3** and the clean **Sphere10 Framework** dependencies are MIT-licensed. Preserve their license and third-party notices when distributing binaries.
 
 The [VisualRenderer linking exception](COPYING.EXCEPTION) grants additional permission only for copyrights Herman Schoenfeld or Sphere 10 Software Pty Ltd own or are authorized to license. It does not grant permission on behalf of other contributors or override third-party licenses. See [renderer licensing and distribution](docs/renderer.md#licensing-and-distribution).
 
@@ -260,7 +314,7 @@ The [VisualRenderer linking exception](COPYING.EXCEPTION) grants additional perm
 
 Use Docker to run Local Notion as a normal command or a background synchronization service. On Windows, start Docker Desktop in **Linux containers** mode. The official image targets **linux/amd64**.
 
-The official stable image is `ghcr.io/sphere10/local-notion:latest`. [Local Notion 1.5.0](https://github.com/Sphere10/LocalNotion/releases/tag/v1.5.0) is publicly available on GitHub Releases. Newer stable releases update `latest` automatically.
+The official stable image is `ghcr.io/sphere10/local-notion:latest`. Native archives and the Docker launcher bundle are published together on [GitHub Releases](https://github.com/Sphere10/LocalNotion/releases). Newer stable releases update `latest` automatically.
 
 ```powershell
 docker pull ghcr.io/sphere10/local-notion:latest
@@ -280,7 +334,7 @@ localnotion --version
 localnotion --help
 ```
 
-For repeatable deployments, select an explicit image version such as `ghcr.io/sphere10/local-notion:1.5.0`. From a source checkout, `.\docker\install-cli.ps1 -Image local-notion:latest -BuildImage` builds and installs the local image.
+For repeatable deployments, select an explicit published image version such as `ghcr.io/sphere10/local-notion:1.7.0`, or the immutable image digest recorded in that release's metadata. From a source checkout, `.\docker\install-cli.ps1 -Image local-notion:latest -BuildImage` builds and installs the local image.
 
 The command uses your current folder, or the folder selected by `--path`. The background service keeps a separate repository under `.docker/data`. The [Docker guide](docker/README.md) covers both modes, token setup, importing data, updates, and Git authentication.
 

@@ -4,6 +4,8 @@ Run Local Notion on your own computer or server using the image built from the o
 
 The image runs the Local Notion CLI. It synchronizes Notion content and renders HTML into persistent storage. It does not include a web interface or an HTTP server, and Compose does not expose any ports.
 
+Version **1.7.0** adds the same `git` settings and `create-cms` commands provided by native builds. See [Git configuration](../docs/git.md) and [Create a CMS](../docs/cms/create-a-cms.md). When upgrading, update the image selected by your launcher or service, not only the source checkout.
+
 ## Choose how to run
 
 | | Foreground command | Background sync service |
@@ -22,18 +24,18 @@ Start Docker Desktop in **Linux containers** mode. The image targets **linux/amd
 
 ## Download a released image
 
-The [unified release workflow](../.github/workflows/release.yml) publishes the official **`ghcr.io/sphere10/local-notion`** image for **linux/amd64**, together with native archives and the Windows Docker installer bundle. [Release 1.5.0](https://github.com/Sphere10/LocalNotion/releases/tag/v1.5.0) is public, including the `1.5.0` and `latest` image tags. Newer stable releases update `latest` automatically.
+The [unified release workflow](../.github/workflows/release.yml) publishes the official **`ghcr.io/sphere10/local-notion`** image for **linux/amd64**, together with native archives and the Windows Docker installer bundle. Each release records its versioned image tag and immutable digest in [GitHub Releases](https://github.com/Sphere10/LocalNotion/releases). Newer stable releases update `latest` automatically.
 
 ```powershell
 docker pull ghcr.io/sphere10/local-notion:latest
 docker run --rm ghcr.io/sphere10/local-notion:latest --version
 ```
 
-To select a particular published version instead of following `latest`, use its version tag. For example, after 1.5.0 is published:
+To select a particular published version instead of following `latest`, use its version tag. For example, for release 1.7.0:
 
 ```powershell
-docker pull ghcr.io/sphere10/local-notion:1.5.0
-docker run --rm ghcr.io/sphere10/local-notion:1.5.0 --version
+docker pull ghcr.io/sphere10/local-notion:1.7.0
+docker run --rm ghcr.io/sphere10/local-notion:1.7.0 --version
 ```
 
 Use the image digest recorded in the release metadata or workflow summary when an exact immutable image reference is needed. The official image supports anonymous pulls. If a pull is denied, check the image name and tag; maintainers can check [registry access settings](../build/README.md#public-container-registry-access).
@@ -51,8 +53,8 @@ The bundle contains its own launcher source, scripts, and release metadata. Its 
 If you already have a source checkout, you can select a published image explicitly. Pull it before running the checkout's installer:
 
 ```powershell
-docker pull ghcr.io/sphere10/local-notion:1.5.0
-.\docker\install-cli.ps1 -Image ghcr.io/sphere10/local-notion:1.5.0
+docker pull ghcr.io/sphere10/local-notion:1.7.0
+.\docker\install-cli.ps1 -Image ghcr.io/sphere10/local-notion:1.7.0
 ```
 
 For a local source build, use:
@@ -181,7 +183,7 @@ Use a current released image, or rebuild an older local image from the source ch
 .\docker\install-cli.ps1 -Image local-notion:latest -BuildImage
 ```
 
-Open an interactive setup shell. This mounts only the state volume. If you selected a released image, replace `local-notion:latest` in the direct Docker commands below with `ghcr.io/sphere10/local-notion:1.5.0` (or your selected version or digest):
+Open an interactive setup shell. This mounts only the state volume. If you selected a released image, replace `local-notion:latest` in the direct Docker commands below with `ghcr.io/sphere10/local-notion:1.7.0` (or your selected version or digest):
 
 ```powershell
 docker run --rm -it --pull never --entrypoint sh `
@@ -362,8 +364,8 @@ Stop synchronization before taking a consistent backup. In command mode, back up
 To update from release bundles, download and extract the desired [Windows Docker bundle](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-docker-windows.zip), then run its `.\install.bat`. It pulls and selects the image version in that bundle. From an updated source checkout, pull a published version and pass it to the installer; for example:
 
 ```powershell
-docker pull ghcr.io/sphere10/local-notion:1.5.0
-.\docker\install-cli.ps1 -Image ghcr.io/sphere10/local-notion:1.5.0
+docker pull ghcr.io/sphere10/local-notion:1.7.0
+.\docker\install-cli.ps1 -Image ghcr.io/sphere10/local-notion:1.7.0
 ```
 
 New `localnotion` commands use the selected image. The launcher does not automatically pull newer releases.

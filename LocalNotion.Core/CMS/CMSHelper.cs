@@ -154,13 +154,8 @@ public class CMSHelper {
 		result.Category3 = page.GetPropertyDisplayValue(Constants.Category3PropertyName)?.Trim().ToNullWhenWhitespace();
 		result.Category4 = page.GetPropertyDisplayValue(Constants.Category4PropertyName)?.Trim().ToNullWhenWhitespace();
 		result.Category5 = page.GetPropertyDisplayValue(Constants.Category5PropertyName)?.Trim().ToNullWhenWhitespace();
-		if (!result.PageType.IsIn(CMSPageType.NavBar, CMSPageType.Header, CMSPageType.Footer, CMSPageType.Internal)) {
-			result.Summary = page.GetPropertyDisplayValue(Constants.SummaryPropertyName)?.Trim().ToNullWhenWhitespace();
-			result.Tags = ((MultiSelectPropertyValue)page.Properties[Constants.TagsPropertyName]).MultiSelect.Select(x => x.Name).Select(x => x.Trim()).ToArray();
-		} else {
-			result.Summary = string.Empty;
-			result.Tags = [];
-		}
+		result.Summary = !IsFramingContent(result.PageType) ? page.GetPropertyDisplayValue(Constants.SummaryPropertyName)?.Trim().ToNullWhenWhitespace() : string.Empty;
+		result.Tags = ((MultiSelectPropertyValue)page.Properties[Constants.TagsPropertyName]).MultiSelect.Select(x => x.Name).Select(x => x.Trim()).ToArray();
 		result.Authentication = page.GetPropertyDisplayValue(Constants.AuthenticationPropertyName)?.Trim().ToNullWhenWhitespace();
 		var pageTitle =page.GetTextTitle().ToValueWhenNullOrEmpty(Constants.DefaultResourceTitle);
 			

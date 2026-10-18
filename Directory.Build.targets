@@ -1,4 +1,20 @@
 <Project>
+  <Import Project="build/Sphere10.Framework.References.targets" />
+
+  <!-- Publish profiles have been imported before this file; keep CLI publish defaults
+       shared by profiles, packaging, Docker and local deployment. Reflection needs IL. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'LocalNotion.CLI' And '$(Configuration)' == 'Release' And '$(RuntimeIdentifier)' != ''">
+    <PublishReadyToRun Condition="'$(PublishReadyToRun)' == ''">true</PublishReadyToRun>
+    <PublishReadyToRunComposite Condition="'$(PublishReadyToRunComposite)' == ''">false</PublishReadyToRunComposite>
+    <PublishReadyToRunCrossgen2ExtraArgs Condition="'$(PublishReadyToRunCrossgen2ExtraArgs)' == ''">--optimize-space</PublishReadyToRunCrossgen2ExtraArgs>
+    <EnableCompressionInSingleFile Condition="'$(EnableCompressionInSingleFile)' == '' And '$(SelfContained)' != 'false'">true</EnableCompressionInSingleFile>
+    <SatelliteResourceLanguages Condition="'$(SatelliteResourceLanguages)' == ''">en</SatelliteResourceLanguages>
+    <PublishAot Condition="'$(PublishAot)' == ''">false</PublishAot>
+    <PublishTrimmed Condition="'$(PublishTrimmed)' == ''">false</PublishTrimmed>
+    <IncludeAllContentForSelfExtract Condition="'$(IncludeAllContentForSelfExtract)' == ''">false</IncludeAllContentForSelfExtract>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(IncludeNativeLibrariesForSelfExtract)' == ''">$(IncludeAllContentForSelfExtract)</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
   <UsingTask TaskName="AllocateLocalNotionBuildNumber"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -76,7 +92,7 @@
     </PropertyGroup>
   </Target>
 
-  <!-- CLI AssemblyInfo.cs owns attribution and custom product/license attributes.
+  <!-- CLI AssemblyInfo.cs owns attribution and custom product attributes.
        Opt into only the SDK's version attributes, retaining its incremental generation. -->
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'LocalNotion.CLI'">
     <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>

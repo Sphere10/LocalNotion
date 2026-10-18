@@ -8,28 +8,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>annotations</Nullable>
 		<AssemblyName>localnotion</AssemblyName>
-		<!--<TrimmerDefaultAction>link</TrimmerDefaultAction>
-		<IsTrimmable>false</IsTrimmable>-->
-		<TrimMode>partial</TrimMode>
+		<ApplicationIcon>../assets/branding/local-notion.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Sphere10.Framework" Version="3.1.2" />
-	  <PackageReference Include="Sphere10.Framework.Application" Version="3.1.2" />
-	  <PackageReference Include="Sphere10.Framework.Data" Version="3.1.2" />
+	  <Sphere10Library Include="Sphere10.Framework" />
+	  <Sphere10Library Include="Sphere10.Framework.Application" />
+	  <Sphere10Library Include="Sphere10.Framework.Data" />
 	</ItemGroup>
 
-	<!--<ItemGroup>
-		<TrimmerRootAssembly Include="System.Configuration.ConfigurationManager" />
-		<TrimmerRootAssembly Include="localnotion" />
-		<TrimmerRootAssembly Include="LocalNotion.Core" />
-		<TrimmerRootAssembly Include="Hydrogen" />
-		<TrimmerRootAssembly Include="Hydrogen.Data" />
-		<TrimmerRootAssembly Include="Hydrogen.Application" />
-		<TrimmerRootAssembly Include="Hydrogen.NETCore" />
-		<TrimmerRootAssembly Include="Notion.Client" />
-	</ItemGroup>-->
-	
 	<ItemGroup>
 		<ProjectReference Include="..\LocalNotion.Core\LocalNotion.Core.csproj" />
 	</ItemGroup>

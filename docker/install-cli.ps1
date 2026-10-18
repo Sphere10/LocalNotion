@@ -128,13 +128,14 @@ if ([string]::IsNullOrWhiteSpace($nativeTarget)) {
 
 $sourceScript = Join-Path $PSScriptRoot 'localnotion-docker.ps1'
 $sourceLauncher = Join-Path $PSScriptRoot 'LocalNotionDockerLauncher.cs'
-if (-not (Test-Path -LiteralPath $sourceScript) -or -not (Test-Path -LiteralPath $sourceLauncher)) {
+$sourceIcon = Join-Path $projectRoot 'assets/branding/local-notion.ico'
+if (-not (Test-Path -LiteralPath $sourceScript) -or -not (Test-Path -LiteralPath $sourceLauncher) -or -not (Test-Path -LiteralPath $sourceIcon)) {
     throw 'The command launcher source files are missing.'
 }
 $buildRoot = Join-Path $projectRoot '.docker/cli-build'
 [System.IO.Directory]::CreateDirectory($buildRoot) | Out-Null
 $compiledLauncher = Join-Path $buildRoot 'localnotion.exe'
-& $compiler /nologo /target:exe /optimize+ /r:System.Runtime.Serialization.dll ("/out:" + $compiledLauncher) $sourceLauncher
+& $compiler /nologo /target:exe /optimize+ /r:System.Runtime.Serialization.dll ("/win32icon:" + $sourceIcon) ("/out:" + $compiledLauncher) $sourceLauncher
 if ($LASTEXITCODE -ne 0) { throw 'The command launcher could not be compiled.' }
 
 # Register only this exact imported sample with its separate secret. Other folders

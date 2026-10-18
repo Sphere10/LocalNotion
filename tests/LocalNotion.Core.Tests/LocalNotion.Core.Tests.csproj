@@ -14,9 +14,11 @@
 
 	<ItemGroup>
 		<None Update="Rendering/Characterization/legacy-*.txt" CopyToOutputDirectory="PreserveNewest" />
+		<None Update="CMS/Fixtures/staging-cms-schema.json" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="../../docker/LocalNotionDockerLauncher.cs" Link="Launcher/LocalNotionDockerLauncher.cs" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="../../docker/install-cli.ps1" Link="Launcher/install-cli.ps1" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="../../docker/localnotion-docker.ps1" Link="Launcher/localnotion-docker.ps1" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="../../assets/branding/local-notion.ico" Link="Launcher/local-notion.ico" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

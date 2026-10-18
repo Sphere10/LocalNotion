@@ -25,7 +25,8 @@ $null = New-Item -ItemType Directory -Path $publishDirectory -Force
 try {
     Push-Location -LiteralPath $PSScriptRoot
     try {
-        & dotnet publish LocalNotion.CLI/LocalNotion.CLI.csproj -c Release -r win-x64 --self-contained true -o $publishDirectory '-p:PublishSingleFile=true' '-p:PublishTrimmed=false' '-p:PublishReadyToRun=false' '-p:DebugSymbols=false' '-p:DebugType=None' *> $logPath
+        # Uncompressed managed assemblies reduced measured startup time and memory for the local runner.
+        & dotnet publish LocalNotion.CLI/LocalNotion.CLI.csproj -c Release -r win-x64 --self-contained true -o $publishDirectory '-p:PublishSingleFile=true' '-p:EnableCompressionInSingleFile=false' '-p:DebugSymbols=false' '-p:DebugType=None' *> $logPath
         if ($LASTEXITCODE -ne 0) { throw "Build failed. See $logPath" }
     } finally {
         Pop-Location

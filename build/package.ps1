@@ -118,7 +118,7 @@ try {
         'publish', (Join-Path $repoRoot 'LocalNotion.CLI/LocalNotion.CLI.csproj'),
         '--configuration', 'Release', '--framework', 'net10.0', '--runtime', $Runtime,
         '--self-contained', 'true', '--output', $payloadDirectory,
-        '-p:PublishSingleFile=true', '-p:PublishTrimmed=false', '-p:PublishReadyToRun=false',
+        '-p:PublishSingleFile=true',
         '-p:DebugSymbols=false', '-p:DebugType=None',
         "-p:ReleaseVersion=$Version", "-p:SourceRevisionId=$SourceRevisionId"
     )

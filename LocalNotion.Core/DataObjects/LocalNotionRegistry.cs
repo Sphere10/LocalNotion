@@ -9,6 +9,7 @@
 using Sphere10.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace LocalNotion.Core;
 
@@ -34,7 +35,7 @@ public class LocalNotionRegistry {
 	//[JsonProperty("cms_primary_datasource")]
 	//public string CMSPrimaryDataSource { get; set; } = null;
 
-	[JsonProperty("git", NullValueHandling = NullValueHandling.Ignore)]
+	[JsonProperty("git", NullValueHandling = NullValueHandling.Ignore, ObjectCreationHandling = ObjectCreationHandling.Replace)]
 	public GitSettings GitSettings { get; set; } = GitSettings.Default;
 
 	[JsonProperty("nginx", NullValueHandling = NullValueHandling.Ignore)]
@@ -59,6 +60,9 @@ public class LocalNotionRegistry {
 		set => _cmsRenders = value?.ToDictionary(x => x.Slug);
 	}
 
+	[JsonExtensionData]
+	public IDictionary<string, JToken> AdditionalData { get; set; }
+
 
 	[JsonIgnore]
 	internal IDictionary<string, CMSItem> CMSItemsBySlug => _cmsRenders;
@@ -75,8 +79,12 @@ public class LocalNotionRegistry {
 		_cmsRenders[item.Slug] = item;
 	}
 
-	public static bool IsForCms(string registryFile) {
+	public static LocalNotionRegistry Load(string registryFile) {
 		var registry = JsonConvert.DeserializeObject<LocalNotionRegistry>(File.ReadAllText(registryFile));
-		return registry.CMSDatabase is not null;
+		if (registry is null)
+			throw new JsonSerializationException("The registry must contain a JSON object.");
+		return registry;
 	}
+
+	public static bool IsForCms(string registryFile) => Load(registryFile).CMSDatabase is not null;
 }

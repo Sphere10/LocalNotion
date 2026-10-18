@@ -208,9 +208,6 @@ public class NotionSyncOrchestrator {
 					downloadedResources.AddRange(downloads);
 					processedPages.Add(page);
 					pageSequence++;
-				} catch (ProductLicenseLimitException) {
-					Logger.Error("You have reached the limit of pages available under your license. Please purchase a license to pull more pages/databases from Notion.");
-					break;
 				} catch (OperationCanceledException) {
 					throw;
 				} catch (Exception error) {
@@ -596,8 +593,6 @@ public class NotionSyncOrchestrator {
 					cancellationToken.ThrowIfCancellationRequested();
 					try {
 						renderer.RenderLocalResource(renderableResource.ID, options.RenderType, options.RenderMode);
-					} catch (ProductLicenseLimitException) {
-						throw;
 					} catch (OperationCanceledException) {
 						throw;
 					} catch (Exception error) {
@@ -645,8 +640,6 @@ public class NotionSyncOrchestrator {
 			return await DownloadFileInternalAsync(url, parentResourceID, force, cancellationToken);
 		} catch (OperationCanceledException) {
 			throw;
-		} catch (ProductLicenseLimitException) {
-			throw;
 		} catch (Exception error) {
 			Logger.Warning($"Failed to download file from '{url}' (parent: {parentResourceID}) - skipping it.");
 			Logger.Exception(error);
@@ -684,8 +677,6 @@ public class NotionSyncOrchestrator {
 				Repository.ImportResourceRender(resourceID, RenderType.File, tmpFile);
 			} catch (OperationCanceledException) {
 				Logger.Info($"Downloading Cancelled: {filename} (resource: {resourceID})");
-				throw;
-			} catch (ProductLicenseLimitException) {
 				throw;
 			} catch (Exception error) {
 				Logger.Exception(error);

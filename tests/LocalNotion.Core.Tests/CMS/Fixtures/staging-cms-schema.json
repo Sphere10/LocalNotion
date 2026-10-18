@@ -1,0 +1,1107 @@
+{
+  "schema_version": 1,
+  "canonical_reference": "staging.sphere10.com",
+  "observed_date": "2026-10-16",
+  "notion_version": "2025-09-03",
+  "evidence": "Live read-only database and primary data-source retrieval; no page records read or copied.",
+  "property_order": "API response order",
+  "properties": [
+    {
+      "name": "Sequence",
+      "type": "number",
+      "format": "number"
+    },
+    {
+      "name": "Status",
+      "type": "select",
+      "options": [
+        {
+          "name": "Draft",
+          "color": "yellow"
+        },
+        {
+          "name": "QA",
+          "color": "blue"
+        },
+        {
+          "name": "Published",
+          "color": "green"
+        },
+        {
+          "name": "Hidden",
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "name": "Category1",
+      "type": "rich_text"
+    },
+    {
+      "name": "Edited By",
+      "type": "last_edited_by"
+    },
+    {
+      "name": "Custom Slug",
+      "type": "rich_text"
+    },
+    {
+      "name": "Authentication",
+      "type": "rich_text"
+    },
+    {
+      "name": "Type",
+      "type": "select",
+      "options": [
+        {
+          "name": "Page",
+          "color": "green"
+        },
+        {
+          "name": "Section",
+          "color": "gray"
+        },
+        {
+          "name": "Gallery",
+          "color": "purple"
+        },
+        {
+          "name": "File",
+          "color": "default"
+        },
+        {
+          "name": "NavBar",
+          "color": "blue"
+        },
+        {
+          "name": "Header",
+          "color": "yellow"
+        },
+        {
+          "name": "Footer",
+          "color": "red"
+        },
+        {
+          "name": "Internal",
+          "color": "pink"
+        }
+      ]
+    },
+    {
+      "name": "Category2",
+      "type": "rich_text"
+    },
+    {
+      "name": "Themes",
+      "type": "multi_select",
+      "options": [
+        {
+          "name": "header_no_pause",
+          "color": "orange"
+        },
+        {
+          "name": "h123_fontsize_default",
+          "color": "default"
+        },
+        {
+          "name": "header_no_slide_controls",
+          "color": "blue"
+        },
+        {
+          "name": "h123_default_padding",
+          "color": "brown"
+        },
+        {
+          "name": "h1_large",
+          "color": "blue"
+        },
+        {
+          "name": "button_shadow",
+          "color": "brown"
+        },
+        {
+          "name": "image_shadow",
+          "color": "blue"
+        },
+        {
+          "name": "callout_shadow",
+          "color": "green"
+        },
+        {
+          "name": "h123_color_aux",
+          "color": "yellow"
+        },
+        {
+          "name": "h3_shadow",
+          "color": "red"
+        },
+        {
+          "name": "h2_shadow",
+          "color": "brown"
+        },
+        {
+          "name": "h1_shadow",
+          "color": "default"
+        },
+        {
+          "name": "shadow_lg",
+          "color": "red"
+        },
+        {
+          "name": "shadow_md",
+          "color": "pink"
+        },
+        {
+          "name": "shadow_sm",
+          "color": "orange"
+        },
+        {
+          "name": "shadow_none",
+          "color": "blue"
+        },
+        {
+          "name": "button_secondary",
+          "color": "blue"
+        },
+        {
+          "name": "button_dark",
+          "color": "blue"
+        },
+        {
+          "name": "link_button",
+          "color": "pink"
+        },
+        {
+          "name": "link_no_underline",
+          "color": "blue"
+        },
+        {
+          "name": "section_padding_top_lg",
+          "color": "brown"
+        },
+        {
+          "name": "section_padding_bottom_lg",
+          "color": "brown"
+        },
+        {
+          "name": "columns_middle",
+          "color": "orange"
+        },
+        {
+          "name": "image_align_right",
+          "color": "yellow"
+        },
+        {
+          "name": "image_align_center",
+          "color": "pink"
+        },
+        {
+          "name": "image_align_left",
+          "color": "brown"
+        },
+        {
+          "name": "section_padding_top_xxs",
+          "color": "blue"
+        },
+        {
+          "name": "section_padding_bottom_xxs",
+          "color": "green"
+        },
+        {
+          "name": "empty",
+          "color": "red"
+        },
+        {
+          "name": "badge",
+          "color": "blue"
+        },
+        {
+          "name": "badge_align_left",
+          "color": "red"
+        },
+        {
+          "name": "badge_align_center",
+          "color": "red"
+        },
+        {
+          "name": "badge_align_right",
+          "color": "default"
+        },
+        {
+          "name": "callout_card",
+          "color": "blue"
+        },
+        {
+          "name": "bullet_check",
+          "color": "purple"
+        },
+        {
+          "name": "text_left",
+          "color": "purple"
+        },
+        {
+          "name": "text_center",
+          "color": "gray"
+        },
+        {
+          "name": "text_right",
+          "color": "purple"
+        },
+        {
+          "name": "text_justify",
+          "color": "yellow"
+        },
+        {
+          "name": "text_muted",
+          "color": "gray"
+        },
+        {
+          "name": "text_small",
+          "color": "brown"
+        },
+        {
+          "name": "link_arrow",
+          "color": "gray"
+        },
+        {
+          "name": "link_muted",
+          "color": "brown"
+        },
+        {
+          "name": "link_detect_appstores",
+          "color": "pink"
+        },
+        {
+          "name": "quote_no_indent",
+          "color": "brown"
+        },
+        {
+          "name": "h123_shadow",
+          "color": "yellow"
+        },
+        {
+          "name": "h1_align_left",
+          "color": "brown"
+        },
+        {
+          "name": "h1_align_center",
+          "color": "gray"
+        },
+        {
+          "name": "h1_align_right",
+          "color": "orange"
+        },
+        {
+          "name": "h1_color_aux",
+          "color": "brown"
+        },
+        {
+          "name": "h1_as_h4",
+          "color": "brown"
+        },
+        {
+          "name": "h1_typed",
+          "color": "orange"
+        },
+        {
+          "name": "h2_align_left",
+          "color": "green"
+        },
+        {
+          "name": "h2_align_center",
+          "color": "green"
+        },
+        {
+          "name": "h2_align_right",
+          "color": "orange"
+        },
+        {
+          "name": "h2_color_aux",
+          "color": "yellow"
+        },
+        {
+          "name": "h2_typed",
+          "color": "brown"
+        },
+        {
+          "name": "h2_as_h5",
+          "color": "pink"
+        },
+        {
+          "name": "h3_align_left",
+          "color": "blue"
+        },
+        {
+          "name": "h3_align_center",
+          "color": "pink"
+        },
+        {
+          "name": "h3_align_right",
+          "color": "gray"
+        },
+        {
+          "name": "h3_color_aux",
+          "color": "brown"
+        },
+        {
+          "name": "h3_typed",
+          "color": "yellow"
+        },
+        {
+          "name": "h3_as_h6",
+          "color": "gray"
+        },
+        {
+          "name": "image_framed",
+          "color": "blue"
+        },
+        {
+          "name": "image_zoomable",
+          "color": "purple"
+        },
+        {
+          "name": "image_width_xxs",
+          "color": "red"
+        },
+        {
+          "name": "image_width_xs",
+          "color": "red"
+        },
+        {
+          "name": "image_width_sm",
+          "color": "blue"
+        },
+        {
+          "name": "image_width_md",
+          "color": "brown"
+        },
+        {
+          "name": "image_width_lg",
+          "color": "pink"
+        },
+        {
+          "name": "image_width_xl",
+          "color": "pink"
+        },
+        {
+          "name": "image_width_xxl",
+          "color": "red"
+        },
+        {
+          "name": "image_width_25pc",
+          "color": "yellow"
+        },
+        {
+          "name": "image_width_50pc",
+          "color": "blue"
+        },
+        {
+          "name": "image_width_75pc",
+          "color": "gray"
+        },
+        {
+          "name": "image_width_100pc",
+          "color": "gray"
+        },
+        {
+          "name": "image_height_xxs",
+          "color": "orange"
+        },
+        {
+          "name": "image_height_xs",
+          "color": "brown"
+        },
+        {
+          "name": "image_height_sm",
+          "color": "pink"
+        },
+        {
+          "name": "image_height_lg",
+          "color": "orange"
+        },
+        {
+          "name": "image_height_xl",
+          "color": "purple"
+        },
+        {
+          "name": "image_height_xxl",
+          "color": "purple"
+        },
+        {
+          "name": "image_height_md",
+          "color": "yellow"
+        },
+        {
+          "name": "image_height_25pc",
+          "color": "yellow"
+        },
+        {
+          "name": "image_height_50pc",
+          "color": "red"
+        },
+        {
+          "name": "image_height_75pc",
+          "color": "purple"
+        },
+        {
+          "name": "image_height_100pc",
+          "color": "default"
+        },
+        {
+          "name": "image_minwidth_xxs",
+          "color": "purple"
+        },
+        {
+          "name": "image_minwidth_xs",
+          "color": "blue"
+        },
+        {
+          "name": "image_minwidth_sm",
+          "color": "purple"
+        },
+        {
+          "name": "image_minwidth_md",
+          "color": "green"
+        },
+        {
+          "name": "image_minwidth_lg",
+          "color": "brown"
+        },
+        {
+          "name": "image_minwidth_xl",
+          "color": "orange"
+        },
+        {
+          "name": "image_minwidth_xxl",
+          "color": "orange"
+        },
+        {
+          "name": "image_maxwidth_xxs",
+          "color": "brown"
+        },
+        {
+          "name": "image_maxwidth_xs",
+          "color": "default"
+        },
+        {
+          "name": "image_maxwidth_sm",
+          "color": "pink"
+        },
+        {
+          "name": "image_maxwidth_md",
+          "color": "default"
+        },
+        {
+          "name": "image_maxwidth_lg",
+          "color": "pink"
+        },
+        {
+          "name": "image_maxwidth_xl",
+          "color": "default"
+        },
+        {
+          "name": "image_maxwidth_xxl",
+          "color": "green"
+        },
+        {
+          "name": "image_minheight_xxs",
+          "color": "gray"
+        },
+        {
+          "name": "image_minheight_xs",
+          "color": "gray"
+        },
+        {
+          "name": "image_minheight_sm",
+          "color": "pink"
+        },
+        {
+          "name": "image_minheight_md",
+          "color": "yellow"
+        },
+        {
+          "name": "image_minheight_lg",
+          "color": "green"
+        },
+        {
+          "name": "image_minheight_xl",
+          "color": "blue"
+        },
+        {
+          "name": "image_minheight_xxl",
+          "color": "yellow"
+        },
+        {
+          "name": "image_maxheight_xxs",
+          "color": "blue"
+        },
+        {
+          "name": "image_maxheight_xs",
+          "color": "red"
+        },
+        {
+          "name": "image_maxheight_sm",
+          "color": "pink"
+        },
+        {
+          "name": "image_maxheight_md",
+          "color": "yellow"
+        },
+        {
+          "name": "image_maxheight_lg",
+          "color": "gray"
+        },
+        {
+          "name": "image_maxheight_xl",
+          "color": "green"
+        },
+        {
+          "name": "image_maxheight_xxl",
+          "color": "green"
+        },
+        {
+          "name": "columns_xs",
+          "color": "default"
+        },
+        {
+          "name": "columns_sm",
+          "color": "green"
+        },
+        {
+          "name": "columns_md",
+          "color": "purple"
+        },
+        {
+          "name": "columns_lg",
+          "color": "pink"
+        },
+        {
+          "name": "columns_xl",
+          "color": "gray"
+        },
+        {
+          "name": "columns_xxl",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_black",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_black_50",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_body",
+          "color": "blue"
+        },
+        {
+          "name": "color_text_body_emphasis",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_body_secondary",
+          "color": "green"
+        },
+        {
+          "name": "color_text_body_tertiary",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_danger",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_danger_emphasis",
+          "color": "green"
+        },
+        {
+          "name": "color_text_dark",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_dark_emphasis",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_info",
+          "color": "green"
+        },
+        {
+          "name": "color_text_info_emphasis",
+          "color": "green"
+        },
+        {
+          "name": "color_text_light",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_light_emphasis",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_primary",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_primary_emphasis",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_secondary",
+          "color": "green"
+        },
+        {
+          "name": "color_text_secondary_emphasis",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_success",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_success_emphasis",
+          "color": "blue"
+        },
+        {
+          "name": "color_text_warning",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_warning_emphasis",
+          "color": "green"
+        },
+        {
+          "name": "color_text_white",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_white_50",
+          "color": "brown"
+        },
+        {
+          "name": "color_bg_body",
+          "color": "purple"
+        },
+        {
+          "name": "color_bg_body_secondary",
+          "color": "pink"
+        },
+        {
+          "name": "color_bg_body_tertiary",
+          "color": "yellow"
+        },
+        {
+          "name": "color_bg_danger",
+          "color": "purple"
+        },
+        {
+          "name": "color_bg_danger_subtle",
+          "color": "pink"
+        },
+        {
+          "name": "color_bg_dark",
+          "color": "default"
+        },
+        {
+          "name": "color_bg_dark_subtle",
+          "color": "default"
+        },
+        {
+          "name": "color_bg_info",
+          "color": "gray"
+        },
+        {
+          "name": "color_bg_info_subtle",
+          "color": "yellow"
+        },
+        {
+          "name": "color_bg_light",
+          "color": "green"
+        },
+        {
+          "name": "color_bg_light_subtle",
+          "color": "yellow"
+        },
+        {
+          "name": "color_bg_primary",
+          "color": "blue"
+        },
+        {
+          "name": "color_bg_primary_subtle",
+          "color": "red"
+        },
+        {
+          "name": "color_bg_secondary",
+          "color": "yellow"
+        },
+        {
+          "name": "color_bg_secondary_subtle",
+          "color": "pink"
+        },
+        {
+          "name": "color_bg_success",
+          "color": "brown"
+        },
+        {
+          "name": "color_bg_success_subtle",
+          "color": "red"
+        },
+        {
+          "name": "color_bg_warning",
+          "color": "orange"
+        },
+        {
+          "name": "color_bg_warning_subtle",
+          "color": "pink"
+        },
+        {
+          "name": "color_aux_danger",
+          "color": "gray"
+        },
+        {
+          "name": "color_aux_dark",
+          "color": "yellow"
+        },
+        {
+          "name": "color_aux_info",
+          "color": "green"
+        },
+        {
+          "name": "color_aux_light",
+          "color": "brown"
+        },
+        {
+          "name": "color_aux_primary",
+          "color": "blue"
+        },
+        {
+          "name": "color_aux_secondary",
+          "color": "orange"
+        },
+        {
+          "name": "color_aux_success",
+          "color": "brown"
+        },
+        {
+          "name": "color_aux_warning",
+          "color": "gray"
+        },
+        {
+          "name": "color_text_aux_50",
+          "color": "green"
+        },
+        {
+          "name": "color_text_aux_black",
+          "color": "orange"
+        },
+        {
+          "name": "color_text_aux_body",
+          "color": "red"
+        },
+        {
+          "name": "color_text_aux_body_emphasis",
+          "color": "red"
+        },
+        {
+          "name": "color_text_aux_body_secondary",
+          "color": "orange"
+        },
+        {
+          "name": "color_text_aux_body_tertiary",
+          "color": "blue"
+        },
+        {
+          "name": "color_text_aux_danger",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_aux_danger_emphasis",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_aux_dark",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_aux_dark_emphasis",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_aux_info",
+          "color": "yellow"
+        },
+        {
+          "name": "color_text_aux_info_emphasis",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_aux_light",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_aux_light_emphasis",
+          "color": "green"
+        },
+        {
+          "name": "color_text_aux_primary",
+          "color": "green"
+        },
+        {
+          "name": "color_text_aux_primary_emphasis",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_aux_secondary",
+          "color": "green"
+        },
+        {
+          "name": "color_text_aux_secondary_emphasis",
+          "color": "default"
+        },
+        {
+          "name": "color_text_aux_success",
+          "color": "brown"
+        },
+        {
+          "name": "color_text_aux_success_emphasis",
+          "color": "pink"
+        },
+        {
+          "name": "color_text_aux_warning",
+          "color": "red"
+        },
+        {
+          "name": "color_text_aux_warning_emphasis",
+          "color": "purple"
+        },
+        {
+          "name": "color_text_aux_white",
+          "color": "green"
+        },
+        {
+          "name": "color_text_aux_white_50",
+          "color": "gray"
+        },
+        {
+          "name": "color_card_danger",
+          "color": "pink"
+        },
+        {
+          "name": "color_card_dark",
+          "color": "red"
+        },
+        {
+          "name": "color_card_info",
+          "color": "blue"
+        },
+        {
+          "name": "color_card_light",
+          "color": "default"
+        },
+        {
+          "name": "color_card_primary",
+          "color": "gray"
+        },
+        {
+          "name": "color_card_secondary",
+          "color": "orange"
+        },
+        {
+          "name": "color_card_success",
+          "color": "purple"
+        },
+        {
+          "name": "color_card_warning",
+          "color": "purple"
+        },
+        {
+          "name": "navbar_callout_productlink",
+          "color": "default"
+        },
+        {
+          "name": "animate_columns_slide_fade",
+          "color": "default"
+        },
+        {
+          "name": "animate_columns_flip",
+          "color": "red"
+        },
+        {
+          "name": "animate_columns_zoom",
+          "color": "green"
+        },
+        {
+          "name": "animate_image_zoom",
+          "color": "gray"
+        },
+        {
+          "name": "shape_line_up",
+          "color": "orange"
+        },
+        {
+          "name": "shape_curve_up",
+          "color": "green"
+        },
+        {
+          "name": "shape_ascend_right",
+          "color": "orange"
+        },
+        {
+          "name": "shape_curve_down",
+          "color": "orange"
+        },
+        {
+          "name": "section_padding_top_none",
+          "color": "purple"
+        },
+        {
+          "name": "section_padding_bottom_none",
+          "color": "green"
+        },
+        {
+          "name": "header_small",
+          "color": "yellow"
+        },
+        {
+          "name": "header_tiny",
+          "color": "yellow"
+        },
+        {
+          "name": "header_particles",
+          "color": "gray"
+        },
+        {
+          "name": "header_fade",
+          "color": "red"
+        },
+        {
+          "name": "header_large",
+          "color": "pink"
+        },
+        {
+          "name": "header_full",
+          "color": "gray"
+        },
+        {
+          "name": "navbar_fixed_top",
+          "color": "gray"
+        },
+        {
+          "name": "navbar_sticky_top",
+          "color": "red"
+        },
+        {
+          "name": "navbar_fixed_bottom",
+          "color": "brown"
+        },
+        {
+          "name": "navbar_sticky_bottom",
+          "color": "gray"
+        },
+        {
+          "name": "code_inject",
+          "color": "yellow"
+        },
+        {
+          "name": "code_all",
+          "color": "yellow"
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "type": "multi_select",
+      "options": [
+        {
+          "name": "@ContactForm",
+          "color": "green"
+        },
+        {
+          "name": "@ShowChildPageTitleOnBanner",
+          "color": "default"
+        },
+        {
+          "name": "@ShowTitleOnBanner",
+          "color": "yellow"
+        },
+        {
+          "name": "@HideInternal",
+          "color": "green"
+        },
+        {
+          "name": "@UseParentHeader",
+          "color": "blue"
+        },
+        {
+          "name": "@HideHeader",
+          "color": "red"
+        },
+        {
+          "name": "@HideNavBar",
+          "color": "brown"
+        },
+        {
+          "name": "@HideFooter",
+          "color": "pink"
+        },
+        {
+          "name": "@UseCoverAsFeature",
+          "color": "orange"
+        },
+        {
+          "name": "@UseThumbnailAsFeature",
+          "color": "gray"
+        },
+        {
+          "name": "@UseFirstImageAsFeature",
+          "color": "purple"
+        },
+        {
+          "name": "@Private",
+          "color": "gray"
+        }
+      ]
+    },
+    {
+      "name": "Category3",
+      "type": "rich_text"
+    },
+    {
+      "name": "Edited On",
+      "type": "last_edited_time"
+    },
+    {
+      "name": "Summary",
+      "type": "rich_text"
+    },
+    {
+      "name": "Category4",
+      "type": "rich_text"
+    },
+    {
+      "name": "Root",
+      "type": "rich_text"
+    },
+    {
+      "name": "Created On",
+      "type": "created_time"
+    },
+    {
+      "name": "Category5",
+      "type": "rich_text"
+    },
+    {
+      "name": "Publish On",
+      "type": "date"
+    },
+    {
+      "name": "Created By",
+      "type": "created_by"
+    },
+    {
+      "name": "Item",
+      "type": "title"
+    }
+  ]
+}

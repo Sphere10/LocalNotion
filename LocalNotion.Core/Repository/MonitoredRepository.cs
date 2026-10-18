@@ -100,6 +100,8 @@ public class MonitoredRepository : DisposableResource,  ICmsLocalNotionRepositor
 
 	public virtual Task SaveAsync() => throw new NotSupportedException();
 
+	public virtual void UpdateGitSettings(bool? enabled = null, bool? push = null) => throw new NotSupportedException();
+
 	public virtual Task ClearAsync() => throw new NotSupportedException();
 
 	public virtual Task CleanAsync() => throw new NotSupportedException();

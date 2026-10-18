@@ -35,43 +35,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProductDistribution(ProductDistribution.ReleaseCandidate)]
 [assembly: AssemblyProductLink("www.sphere10.com/products/localnotion")]
 [assembly: AssemblyProductCode("A49ECEC9-1E83-436c-B432-BBF7B26055E7")]
-[assembly: AssemblyProductSecret("5d53d16efdf24ae18d5b8bac48974642ce60bbea978330a8c4154df13f9349dd")]
-#if DEBUG
-[assembly: AssemblyProductDrmApi("http://localhost:5000/api/drm")]
-#else
-[assembly: AssemblyProductDrmApi("https://sphere10.com/api/drm")]
-#endif
-[assembly: AssemblyProductLicense(
-	"""
-	{
-	  "authority": {
-	    "name": "Sphere 10 Software General Software Products",
-	    "dss": "ecdsa-secp256k1",
-	    "publicKey": "A0xL8HSZ7Cl9IYUx92/e34NPhYZHkQEaWcyU2BuJx/2T"
-	  },
-	  "license": {
-	    "Item": {
-	      "name": "Local Notion v1 Free",
-	      "productKey": "0000-0000-0000-0002",
-	      "productCode": "a49ecec9-1e83-436c-b432-bbf7b26055e7",
-	      "featureLevel": "free",
-	      "expirationPolicy": "disable",
-	      "majorVersionApplicable": 1,
-	      "limitFeatureA": 1,
-	      "limitFeatureB": 100
-	    },
-	    "Signature": "MEQCIHPzC7L6jdJZDi4hog4bZcuVrb+Q+TAdcPC+/BGcPT6qAiAJVvGPPxT9HIJ+8caCND8tu0GXnHPp4WZSYV/bl0eFdg=="
-	  },
-	  "command": {
-	    "Item": {
-	      "productKey": "0000-0000-0000-0002",
-	      "action": "enable"
-	    },
-	    "Signature": "MEQCICc1df+K9lGWBna950qmoM/OBzrx27nO2E7dEr7aC18kAiAO7xqWkOXlWrosGDgTtPHM5DMezjl+pTdF9AUlPxvEwQ=="
-	  }
-	}
-	"""
-)]    // full version product key
 [assembly: AssemblyCopyright("Copyright \u00A9 Sphere 10 Software 2015 - {CurrentYear}")]
 [assembly: AssemblyCompanyLink("www.sphere10.com")]
 [assembly: AssemblyCompanyNumber("ABN 39 600 596 316")]

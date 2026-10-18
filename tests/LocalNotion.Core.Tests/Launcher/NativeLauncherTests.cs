@@ -187,6 +187,9 @@ public class NativeLauncherTests {
 		Directory.CreateDirectory(installerDirectory);
 		foreach (var file in new[] { "install-cli.ps1", "LocalNotionDockerLauncher.cs", "localnotion-docker.ps1" })
 			File.Copy(Path.Combine(AppContext.BaseDirectory, "Launcher", file), Path.Combine(installerDirectory, file));
+		var brandingDirectory = Path.Combine(_fixtureRoot, "checkout", "assets", "branding");
+		Directory.CreateDirectory(brandingDirectory);
+		File.Copy(Path.Combine(AppContext.BaseDirectory, "Launcher", "local-notion.ico"), Path.Combine(brandingDirectory, "local-notion.ico"));
 		var installed = Path.Combine(_fixtureRoot, "installed");
 		var powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
 		var installer = Path.Combine(installerDirectory, "install-cli.ps1");

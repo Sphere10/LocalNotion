@@ -82,6 +82,13 @@ public class SynchronizedLocalNotionRepository : LocalNotionRepositoryDecorator,
 		}
 	}
 
+	public override GitSettings GitSettings {
+		get {
+			using (EnterReadScope())
+				return InternalRepository.GitSettings;
+		}
+	}
+
 	public override bool RequiresLoad { 
 		get {
 			using (EnterReadScope())
@@ -104,6 +111,11 @@ public class SynchronizedLocalNotionRepository : LocalNotionRepositoryDecorator,
 	public override async Task SaveAsync() {
 		using (EnterWriteScope())
 			await InternalRepository.SaveAsync();
+	}
+
+	public override void UpdateGitSettings(bool? enabled = null, bool? push = null) {
+		using (EnterWriteScope())
+			InternalRepository.UpdateGitSettings(enabled, push);
 	}
 
 	public override async Task ClearAsync() {

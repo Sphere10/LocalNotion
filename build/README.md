@@ -9,11 +9,11 @@ Publication starts when a maintainer pushes a `v*` release tag (normally through
 ## Checklist for your next release
 
 1. **Prepare the source.** Review and test your changes, include the latest `master` changes, and commit everything intended for the release. Open PowerShell 7 in the official repository root. Run `git status --short`; it must show no pending changes or untracked files before releasing.
-2. **Choose an unused version.** For example, use `1.5.1` for the next patch release or `1.6.0` for the next minor release. Replace `1.5.1` below with your chosen version. The release command updates `Version.props` for you.
+2. **Choose an unused version.** For example, use `1.7.1` for a patch release after 1.7.0 or `1.8.0` for the next minor release. Replace `1.7.1` below with your chosen unused version. The release command updates `Version.props` for you.
 3. **Preview the release action:**
 
    ```powershell
-   .\build\release.ps1 -Version 1.5.1 -WhatIf
+   .\build\release.ps1 -Version 1.7.1 -WhatIf
    ```
 
    Review the proposed version, commit, and tag. This checks the release plan and may fetch remote branch information; it does not build, edit files, commit, tag, or push. For a full CI rehearsal, use [Run workflow](https://github.com/Sphere10/LocalNotion/actions/workflows/release.yml) with **publish disabled** and wait for the tests to pass.
@@ -21,36 +21,49 @@ Publication starts when a maintainer pushes a `v*` release tag (normally through
 4. **When ready, start publishing:**
 
    ```powershell
-   .\build\release.ps1 -Version 1.5.1
+   .\build\release.ps1 -Version 1.7.1
    ```
 
-   This updates and commits `Version.props` when necessary, then pushes the current committed source to `master` together with the `v1.5.1` tag. GitHub Actions builds and tests all native packages and Docker before uploading the release assets.
+   This updates and commits `Version.props` when necessary, then pushes the current committed source to `master` together with the `v1.7.1` tag. GitHub Actions builds and tests all native packages and Docker before uploading the release assets.
 
 5. **Wait for completion.** Follow the Actions link printed by the command. A pushed tag means publishing has started; confirm the workflow succeeds and the version appears in [GitHub Releases](https://github.com/Sphere10/LocalNotion/releases). Newer stable releases also update the official Docker `latest` tag.
 6. **If a run fails, check its logs.** Follow the [retry and recovery instructions](#recover-publication-after-a-publisher-fix). Preserve existing release tags and published assets; use a new version for changed binaries.
 
 The build system lives in this repository. It does not require `Y:\builds`, the old SP10 PowerShell module, external attachment folders, signing certificates, or developer-machine paths. Build outputs, temporary packaging directories, and smoke-test extractions are kept under the Git-ignored `publish/` directory.
 
+## Clean Framework prerequisite
+
+The source build now defaults to a sibling clean post-DRM-extraction Framework
+checkout, or `Sphere10FrameworkRoot`. It has no Enterprise dependency or private
+feed requirement. See [the source-build availability boundary](../README.md#framework-dependency-and-build-modes).
+Public Framework.Application 3.1.2 still contains DRM; a clean public 3.1.3 package
+or public source commit has not been verified. Do not publish this source change
+through the existing checkout-only CI/Docker workflow until a reproducible clean
+Framework source/package set is supplied and those release paths are tested.
+Local source build/test evidence is not a release, Docker build or public-package
+verification. Explicit package mode needs all three matching clean packages and
+an exact Sphere10FrameworkVersion; it never falls back to Enterprise or 3.1.2.
+
 ## Requirements
 
 Use the .NET 10 SDK selected by [global.json](../global.json), Git, and PowerShell **7.4 or later** for packaging and CI helpers. The release entry point requires PowerShell 7 or later; use 7.4 for the complete toolchain. Docker Desktop or Docker Engine is needed for Docker builds and image checks. The local release command requires authenticated Git push access to the official repository. GitHub Actions supplies GitHub CLI and its own token for the publishing job; you do not need to install GitHub CLI locally.
 
-The .NET 10 upgrade uses SDK **10.0.400**, selected by global.json, and runtime **10.0.11**. CLI, Core, and Renderer target net10.0; the vendored Notion.Client retains netstandard2.0 compatibility. SDK and runtime version numbers are separate. Docker builds use the matching SDK image and the official .NET 10 runtime-deps images based on Ubuntu 24.04 (Noble). These runtime images support ARM32, so the linux-arm archive smoke test and all eight native release targets remain supported.
+The .NET 10 upgrade uses SDK **10.0.400**, selected by global.json, and runtime **10.0.11**. CLI and Core target net10.0; the vendored Notion.Client retains netstandard2.0 compatibility. SDK and runtime version numbers are separate. Docker builds use the matching SDK image and the official .NET 10 runtime-deps images based on Ubuntu 24.04 (Noble). These runtime images support ARM32, so the linux-arm archive smoke test and all eight native release targets remain supported.
 
 The native Windows archive installer is a separate end-user script compatible with Windows PowerShell **5.1**. Users do not need the .NET SDK to run self-contained native archives or the Windows Docker launcher bundle.
 
 ## Version and build number
 
-[Version.props](../Version.props) is the shared source for the CLI, Core, and Renderer release version, currently `1.6.0`. [Directory.Build.props](../Directory.Build.props) and [Directory.Build.targets](../Directory.Build.targets) derive the application version fields from that value. The vendored `Notion.Client` keeps its upstream package version.
+[Version.props](../Version.props) is the shared source for the CLI and Core release version, currently `1.7.0`. The renderer package is versioned independently. [Directory.Build.props](../Directory.Build.props) and [Directory.Build.targets](../Directory.Build.targets) derive the application version fields from that value. The vendored `Notion.Client` keeps its upstream package version.
 
-For version `1.5.0`, build number `17`, and commit `<commit>`:
+For version `1.7.0`, build number `17`, and commit `<commit>`:
 
 | Field | Value |
 | --- | --- |
-| `Version` and `PackageVersion` | `1.5.0` |
-| `AssemblyVersion` and `FileVersion` | `1.5.0.17` |
-| `InformationalVersion` and CLI `--version` identity | `1.5.0.17` |
-| Native archive `VERSION.txt` | `1.5.0-build.17` |
+| `Version` and `PackageVersion` | `1.7.0` |
+| `AssemblyVersion` and `FileVersion` | `1.7.0.17` |
+| `InformationalVersion` and CLI `--version` identity | `1.7.0.17` |
+| Native archive `VERSION.txt` | `1.7.0-build.17` |
 
 Prereleases retain their suffix in the NuGet/package version; assembly, file, and CLI `--version` use the four-part numeric form `major.minor.patch.build`. The last number is the build number. Git SHA is not part of `--version`; packaging still records the commit in `localnotion-release.json`. Packaging resolves Git HEAD unless `-SourceRevisionId` is supplied explicitly.
 
@@ -72,12 +85,13 @@ This uses the version in `Version.props`, the next solution-folder build number,
 
 ```powershell
 $commit = (git rev-parse HEAD).Trim()
-./build/package.ps1 -Runtime linux-x64 -Version 1.5.0 -BuildNumber 17 -SourceRevisionId $commit -OutputDirectory ./publish/example/artifacts
+./build/package.ps1 -Runtime linux-x64 -Version 1.7.0 -BuildNumber 17 -SourceRevisionId $commit -OutputDirectory ./publish/example/artifacts
 ```
 
 The script publishes the complete self-contained `net10.0` output, includes native dependencies, then adds the platform installer, README, repository `LICENSE`, `COPYRIGHT` and `COPYING.EXCEPTION`, `VERSION.txt`, and `localnotion-release.json`. LocalNotion remains GPL-licensed; Sphere10.VisualRenderer and other dependencies retain their separate licenses and notices. Preserve the renderer notices copied by its NuGet package in the published output. The [linking exception](../COPYING.EXCEPTION) covers only copyrights the named Grantors own or are authorized to license; any additional rights required from other contributors or third-party suppliers must be resolved before release. No old proprietary EULA, credentials, or private Docker state is copied. Repackaging a RID into the same local output directory replaces its archive.
 
-To package all supported RIDs locally:
+The release matrix contains all eight supported RIDs. To package them locally,
+use an SDK host that supports cross-compiling each target:
 
 ```powershell
 $platforms = Get-Content ./build/platforms.json -Raw | ConvertFrom-Json
@@ -88,11 +102,93 @@ foreach ($platform in $platforms.include) {
 
 Windows compatibility wrappers `publish-all.bat`, `publish-win-x64.bat`, and `publish-linux-x64.bat` call this same script and forward packaging options. They produce local files; they do not publish a release.
 
+### ReadyToRun and single-file publishing
+
+[Directory.Build.targets](../Directory.Build.targets) owns the CLI's shared
+defaults for Release publishing with an explicit runtime identifier. The eight
+publish profiles, native packaging script, local deployment script and Docker
+build use these defaults. The local deployment script overrides bundle
+compression as described below. Ordinary builds without a runtime identifier
+and Debug builds retain their normal SDK behavior.
+
+| Setting | Default |
+| --- | --- |
+| `PublishReadyToRun` | `true` |
+| `PublishReadyToRunComposite` | `false` |
+| `PublishReadyToRunCrossgen2ExtraArgs` | `--optimize-space` |
+| `EnableCompressionInSingleFile` | `true` |
+| `SatelliteResourceLanguages` | `en` |
+| `PublishAot` and `PublishTrimmed` | `false` |
+| `IncludeAllContentForSelfExtract` and `IncludeNativeLibrariesForSelfExtract` | `false` |
+
+An explicitly framework-dependent publish (`--self-contained false`) uses the
+SDK's uncompressed single-file default because bundle compression requires a
+self-contained application. Explicit property overrides remain untouched,
+including combinations the SDK rejects as incompatible. If extraction is
+explicitly enabled with `IncludeAllContentForSelfExtract=true`, native-library
+extraction follows that setting unless separately specified, matching the SDK's
+required all-content behavior. Both extraction defaults remain false.
+
+This uses ordinary ReadyToRun compilation while retaining IL and runtime JIT
+support. Native AOT and trimming remain disabled because Local Notion and its
+dependencies use reflection for Notion JSON, templates and type discovery.
+Native libraries remain beside the executable; deploy the complete publish
+directory or archive rather than copying only the executable.
+
+ReadyToRun can reduce first-use compilation work and increase binary size.
+Single-file compression reduces distribution size but decompresses managed
+assemblies into memory at startup. Measure the published executable's startup
+and memory against the same workload before calling the result an improvement.
+Composite compilation and extracting the entire bundle are not enabled.
+
+Distribution packages and Docker use compression by default to reduce payload
+size. [deploy-locally.ps1](../deploy-locally.ps1) explicitly sets
+`EnableCompressionInSingleFile=false` for the installed Windows runner, retaining
+ordinary ReadyToRun and the other shared defaults. This keeps managed assemblies
+file-backed and avoids their decompression allocation during startup. It trades
+a larger executable on disk for the lower startup memory measured on the local
+Windows x64 host.
+
+A bounded Windows x64 comparison on 18 October 2026 used the same source,
+self-contained runtime (.NET 10.0.13, workstation GC), ordinary ReadyToRun and
+single-file layout, changing only compression. Three fresh processes per variant
+ran `--version` in balanced alternating order with isolated application settings.
+The same diagnostic startup hook observed `Sphere10Framework.Initialized`
+before command processing. The table contains medians before diagnostic full GC;
+MiB means 1,048,576 bytes.
+
+| Bundle compression | Executable MiB | Private MiB at ready | Working set MiB at ready | Process start to ready ms |
+| --- | ---: | ---: | ---: | ---: |
+| Enabled | 44.13 | 45.72 | 96.02 | 319.8 |
+| Disabled | 92.31 | 10.21 | 32.24 | 211.7 |
+
+The pre-GC managed estimates were similar: 290,336 and 290,496 bytes respectively.
+Timing includes diagnostic-hook overhead, and the Windows file cache was not
+flushed. These results describe initialization on this host, not cold-start,
+Notion download or rendering throughput. Recheck representative workloads before
+changing distribution policy. Microsoft's [single-file compression guidance](https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview#compress-assemblies-in-single-file-apps)
+explains the size/startup tradeoff and recommends measuring the application.
+
+The properties are defaults and can be overridden explicitly for a diagnostic
+comparison. For example, publish the same source without ReadyToRun or bundle
+compression to a separate directory:
+
+```powershell
+dotnet publish LocalNotion.CLI/LocalNotion.CLI.csproj -c Release -r win-x64 --self-contained true -p:BuildNumber=0 -p:PublishSingleFile=true -p:PublishReadyToRun=false -p:EnableCompressionInSingleFile=false -o ./publish/comparison/win-x64
+```
+
+Cross-compilation depends on the SDK host and target combination. Windows x64
+supports the eight current targets; Linux and macOS SDK hosts do not produce
+Windows ReadyToRun output. See Microsoft's [ReadyToRun platform support](https://learn.microsoft.com/en-us/dotnet/core/deploying/ready-to-run#cross-platformarchitecture-restrictions).
+Building an artifact does not prove that it runs on its target. Execute archive
+smoke tests on a compatible host, as the release matrix does; ARM32 uses QEMU.
+Docker still requires the clean Framework build prerequisite described above.
+
 ### Renderer package dependency
 
 LocalNotion restores the pinned Sphere10.VisualRenderer binary NuGet package.
-Its source, tests, versioning, and pack/publish scripts belong to Sphere10
-Commercial. This workflow does not build or publish the renderer.
+Version 3.1.3 is publicly available under MIT. This workflow does not build or
+publish the renderer.
 
 Make the pinned package available to the developer/CI NuGet sources before
 building a LocalNotion release. See [renderer integration](../docs/renderer.md).
@@ -100,11 +196,11 @@ The renderer's version changes independently of LocalNotion's release version.
 
 ### Validate an archive
 
-Run the smoke test on a host that can execute the packaged RID. For a local Windows x64 package of version 1.5.0:
+Run the smoke test on a host that can execute the packaged RID. For a local Windows x64 package of version 1.7.0:
 
 ```powershell
 $commit = (git rev-parse HEAD).Trim()
-./build/test-package.ps1 -ArchivePath ./publish/1.5.0/artifacts/localnotion-win-x64.zip -Runtime win-x64 -Version 1.5.0 -BuildNumber 0 -SourceRevisionId $commit
+./build/test-package.ps1 -ArchivePath ./publish/1.7.0/artifacts/localnotion-win-x64.zip -Runtime win-x64 -Version 1.7.0 -BuildNumber 0 -SourceRevisionId $commit
 ```
 
 The helper validates the extracted metadata and executable, then checks the CLI version and help output. Default extraction uses a unique directory under `publish/.smoke` and is cleaned afterward. `-SkipExecution` checks archive structure and identity when the local host cannot execute its RID. `-ExtractDirectory` requires a new directory and keeps the extraction for external checks. Neither option installs the application.
@@ -117,14 +213,14 @@ Build a local versioned Docker candidate:
 
 ```powershell
 $commit = (git rev-parse HEAD).Trim()
-docker build --platform linux/amd64 --build-arg VERSION=1.5.0 --build-arg BUILD_NUMBER=0 --build-arg "VCS_REF=$commit" -t local-notion:1.5.0 .
-docker run --rm --network none local-notion:1.5.0 --version
+docker build --platform linux/amd64 --build-arg VERSION=1.7.0 --build-arg BUILD_NUMBER=0 --build-arg "VCS_REF=$commit" -t local-notion:1.7.0 .
+docker run --rm --network none local-notion:1.7.0 --version
 ```
 
 Package the standalone Windows Docker launcher installer:
 
 ```powershell
-./build/package-docker-launcher.ps1 -Version 1.5.0 -BuildNumber 0 -SourceRevisionId $commit
+./build/package-docker-launcher.ps1 -Version 1.7.0 -BuildNumber 0 -SourceRevisionId $commit
 ```
 
 The bundle contains only the launcher source/scripts, installer entry points, README, license notices, and release metadata. Its root `install.ps1` pulls `ghcr.io/sphere10/local-notion:<version>`, verifies the image is available, then calls the bundled launcher installer with that image selected. It supports `-InstallDirectory` and `-NoPath`; a repository checkout is not required. It compiles the small Windows launcher inside the extracted bundle, so extraction must be in a writable directory. The Docker image itself is downloaded from GHCR and is not embedded in the ZIP.

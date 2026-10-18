@@ -3,3 +3,6 @@ Dockerfile text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
 .dockerignore text eol=lf
+
+# Preserve the upstream font license verbatim, including its trailing spaces.
+assets/branding/Inter-OFL.txt -whitespace

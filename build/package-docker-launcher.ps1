@@ -49,6 +49,7 @@ $sourceFiles = @(
     'docker/install-cli.ps1',
     'docker/localnotion-docker.ps1',
     'docker/LocalNotionDockerLauncher.cs',
+    'assets/branding/local-notion.ico',
     'LICENSE',
     'COPYRIGHT'
 )
@@ -174,7 +175,9 @@ $null = New-Item -ItemType Directory -Path $outputRoot -Force
 $null = New-Item -ItemType Directory -Path (Join-Path $payloadDirectory 'docker') -Force
 try {
     foreach ($relativePath in $sourceFiles) {
-        Copy-Item -LiteralPath (Join-Path $repoRoot $relativePath) -Destination (Join-Path $payloadDirectory $relativePath)
+        $destination = Join-Path $payloadDirectory $relativePath
+        $null = New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force
+        Copy-Item -LiteralPath (Join-Path $repoRoot $relativePath) -Destination $destination
     }
     [IO.File]::WriteAllText((Join-Path $payloadDirectory 'install.ps1'), $installer.TrimEnd() + [char] 10, $utf8)
     [IO.File]::WriteAllText((Join-Path $payloadDirectory 'install.bat'), ($batchInstaller.TrimEnd() -replace '\r?\n', ([string] [char] 13 + [char] 10)) + [char] 13 + [char] 10, $utf8)

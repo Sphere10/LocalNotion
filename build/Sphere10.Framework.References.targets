@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup Condition="'$(UseSphere10FrameworkSource)' == 'true'">
+    <!-- Referenced Framework projects are outside LocalNotion.sln; retain Release/Debug. -->
+    <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(UseSphere10FrameworkSource)' == 'true'">
+    <ProjectReference Include="@(Sphere10Library->'$(Sphere10FrameworkRoot)/src/%(Identity)/%(Identity).csproj')" AdditionalProperties="Configuration=$(Configuration);ShouldUnsetParentConfigurationAndPlatform=false" GlobalPropertiesToRemove="CurrentSolutionConfigurationContents" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseSphere10FrameworkSource)' == 'false'">
+    <PackageReference Include="@(Sphere10Library)" Version="[$(Sphere10FrameworkVersion)]" />
+  </ItemGroup>
+
+  <Target Name="ValidateSphere10FrameworkReferences" BeforeTargets="CollectPackageReferences;PrepareForBuild" Condition="'@(Sphere10Library)' != ''">
+    <Error Condition="'$(UseSphere10FrameworkSource)' != 'true' And '$(UseSphere10FrameworkSource)' != 'false'"
+           Text="UseSphere10FrameworkSource must be true or false." />
+    <Error Condition="'$(UseSphere10FrameworkSource)' == 'true' And !Exists('$(Sphere10FrameworkRoot)/src/%(Sphere10Library.Identity)/%(Sphere10Library.Identity).csproj')"
+           Text="Clean Framework source is required. Missing $(Sphere10FrameworkRoot)/src/%(Sphere10Library.Identity)/%(Sphere10Library.Identity).csproj. Set Sphere10FrameworkRoot to a post-DRM-extraction checkout; see README.md." />
+    <Error Condition="'$(UseSphere10FrameworkSource)' == 'true' And Exists('$(Sphere10FrameworkRoot)/src/Sphere10.Framework.Application/DRM/Provider/IProductLicenseProvider.cs')"
+           Text="The selected Framework source still contains DRM. Select the post-extraction Framework source; legacy Framework 3.1.2 is unsupported." />
+    <Error Condition="'$(UseSphere10FrameworkSource)' == 'false' And !$([System.Text.RegularExpressions.Regex]::IsMatch('$(Sphere10FrameworkVersion)', '^(3\.1\.([3-9]|[1-9][0-9]+)|3\.([2-9]|[1-9][0-9]+)\.[0-9]+|([4-9]|[1-9][0-9]+)\.[0-9]+\.[0-9]+)(-[0-9A-Za-z.-]+)?$'))"
+           Text="Package mode requires an explicit exact clean Sphere10FrameworkVersion (3.1.3 or later, without Enterprise DRM). Public 3.1.2 contains DRM; no package fallback is supported. See README.md." />
+    <Error Condition="'$(UseSphere10FrameworkSource)' == 'false' And $([System.Text.RegularExpressions.Regex]::IsMatch('$(Sphere10FrameworkVersion)', '(?i)enterprise|drm'))"
+           Text="Enterprise/DRM Framework packages are not supported by LocalNotion." />
+  </Target>
+</Project>

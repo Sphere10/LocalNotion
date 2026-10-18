@@ -48,6 +48,23 @@ public class CmsFramingLifecycleTests {
 	}
 
 	[Test]
+	public void GalleryInternalTagsRestoreParentHeaderRegardlessOfDownloadOrder([Values] bool internalFirst) {
+		var header = AddPage(CMSPageType.Header, "");
+		if (internalFirst)
+			AddPage(CMSPageType.Internal, "catalogue", tags: [Constants.TagUseParentHeader]);
+		var firstCard = AddPage(CMSPageType.Gallery, "catalogue/first");
+		AddPage(CMSPageType.Gallery, "catalogue/second");
+		if (!internalFirst)
+			AddPage(CMSPageType.Internal, "catalogue", tags: [Constants.TagUseParentHeader]);
+
+		var gallery = _repository.CMSDatabase.GetContent("catalogue");
+		Assert.That(gallery.Type, Is.EqualTo(CMSContentType.Gallery));
+		Assert.That(gallery.Header, Is.SameAs(header));
+		Assert.That(_repository.GetCMSItem("catalogue").HeaderID, Is.EqualTo(header.ID));
+		Assert.That(_repository.GetCMSItem(firstCard.CMSProperties.CustomSlug).HeaderID, Is.Null, "A container's own control tag must not change an untagged card's framing.");
+	}
+
+	[Test]
 	public void RemovingFramingClearsReferencesWhenCmsContentIsMissing(
 		[Values(CMSPageType.Header, CMSPageType.NavBar, CMSPageType.Footer, CMSPageType.Internal)] CMSPageType framingType,
 		[Values] bool hiddenContent

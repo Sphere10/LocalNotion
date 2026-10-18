@@ -65,6 +65,8 @@ public interface ILocalNotionRepository : IDisposable, IAsyncDisposable {
 	Task LoadAsync();
 
 	Task SaveAsync();
+
+	void UpdateGitSettings(bool? enabled = null, bool? push = null);
 	
 	Task ClearAsync();
 

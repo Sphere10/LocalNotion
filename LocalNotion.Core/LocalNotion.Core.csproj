@@ -12,9 +12,9 @@
 		<PackageReference Include="AngleSharp" Version="1.8.0" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(DefineConstants)', '(^|;)\s*CleanHTML\s*(;|$)'))" />
 		<PackageReference Include="Sphere10.VisualRenderer" Version="3.1.3" />
         <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
-		<PackageReference Include="Sphere10.Framework" Version="3.1.2" />
-		<PackageReference Include="Sphere10.Framework.Application" Version="3.1.2" />
-		<PackageReference Include="Sphere10.Framework.Data" Version="3.1.2" />
+		<Sphere10Library Include="Sphere10.Framework" />
+		<Sphere10Library Include="Sphere10.Framework.Application" />
+		<Sphere10Library Include="Sphere10.Framework.Data" />
 		<PackageReference Include="System.Linq.Async" Version="7.0.1" />
 	</ItemGroup>
 
@@ -24,6 +24,10 @@
 
 	<ItemGroup>
 	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="CMS/BlankCMSDatabase.json" />
 	</ItemGroup>
 
 </Project>

@@ -79,7 +79,9 @@ public class CMSContentNode {
 	//public IEnumerable<string> Tags => Content.SelectMany(x => x.CMSProperties.Tags).Distinct();
 
 	public IEnumerable<string> Tags => Type switch {
-		CMSContentType.Gallery => this.Children.SelectMany(x => x.Tags).Concat(Content.SelectMany(x => x.CMSProperties.Categories).Distinct()),
+		CMSContentType.Gallery => Children.SelectMany(x => x.Tags)
+			.Concat(Content.SelectMany(x => x.CMSProperties.Tags))
+			.Concat(Content.SelectMany(x => x.CMSProperties.Categories).Distinct()),
 		_ => Content.SelectMany(x => x.CMSProperties.Tags).Distinct()
 	};
 

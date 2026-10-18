@@ -40,6 +40,7 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 	private ICache<string, LocalNotionEditableResource> _resourceByName;
 	private readonly MulticastLogger _logger;
 	private readonly string _registryPath;
+	private bool _disposed;
 
 	public LocalNotionRepository(string registryFile, ILogger logger = null) {
 		Guard.ArgumentNotNull(registryFile, nameof(registryFile));
@@ -128,7 +129,12 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		}
 	}
 
-	public GitSettings GitSettings => Registry.GitSettings;
+	public GitSettings GitSettings {
+		get {
+			CheckLoaded();
+			return Registry.GitSettings ?? GitSettings.Default;
+		}
+	}
 
 	public NGinxSettings NGinxSettings => Registry.NGinxSettings;
 
@@ -246,7 +252,7 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		Guard.ArgumentNotNull(registryPath, nameof(registryPath));
 		Guard.FileExists(registryPath);
 		logger ??= new NoOpLogger();
-		var registry = Tools.Json.ReadFromFile<LocalNotionRegistry>(registryPath);
+		var registry = LocalNotionRegistry.Load(registryPath);
 		RepositoryFileSystemPaths.Normalize(registry);
 		var pathResolver = new PathResolver(Path.GetFullPath(registry.Paths.RepositoryPathR, Path.GetDirectoryName(registryPath)), registry.Paths);
 		await RemoveInternal(pathResolver, logger);
@@ -307,7 +313,7 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		await SaveInternal_CompleteUnfinishedPhase(_registryPath);
 
 		// load the registry
-		Registry = await Task.Run(() => Tools.Json.ReadFromFile<LocalNotionRegistry>(_registryPath));
+		Registry = await Task.Run(() => LocalNotionRegistry.Load(_registryPath));
 		RepositoryFileSystemPaths.Normalize(Registry);
 
 		// create path resolver
@@ -394,6 +400,26 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 		await SaveInternal_PersistPhase(registryFile);
 		await SaveInternal_OverwritePhase(registryFile);
 		await SaveInternal_CleanPhase(registryFile);
+	}
+
+	public void UpdateGitSettings(bool? enabled = null, bool? push = null) {
+		// Retain options the caller did not specify.
+		CheckLoaded();
+		var settings = GitSettings;
+		var updatedEnabled = enabled ?? settings.Enabled;
+		var updatedPush = push ?? settings.Push;
+		if (settings.Enabled == updatedEnabled && settings.Push == updatedPush)
+			return;
+
+		// Use the repository's normal change notifications and save lifecycle.
+		NotifyChanging();
+		Registry.GitSettings = new GitSettings {
+			Enabled = updatedEnabled,
+			Push = updatedPush,
+			AdditionalData = settings.AdditionalData
+		};
+		RequiresSave = true;
+		NotifyChanged();
 	}
 
 	public async Task ClearAsync() {
@@ -821,14 +847,15 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 	#endregion
 
 	protected override void FreeManagedResources() {
-		_resourceByName.Purge();
-		_resourcesByNID.Purge();
-		Registry.CMSItems = null;
-		Registry.Resources = null;
+		if (_disposed)
+			return;
+		_disposed = true;
+		_resourceByName?.Purge();
+		_resourcesByNID?.Purge();
 		Registry = null;
-		_objectStore.Dispose();
-		_graphStore.Dispose();
-		_renderBySlug.Purge();
+		_objectStore?.Dispose();
+		_graphStore?.Dispose();
+		_renderBySlug?.Purge();
 	}
 
 	protected async Task SaveInternal_PersistPhase(string registryFile) {
@@ -1073,11 +1100,13 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 	}
 
 	protected void CheckNotLoaded() {
+		ObjectDisposedException.ThrowIf(_disposed, this);
 		if (!RequiresLoad)
 			throw new InvalidOperationException($"{nameof(LocalNotionRepository)} was loaded");
 	}
 
 	protected void CheckLoaded() {
+		ObjectDisposedException.ThrowIf(_disposed, this);
 		if (RequiresLoad)
 			throw new InvalidOperationException($"{nameof(LocalNotionRepository)} was not loaded");
 	}

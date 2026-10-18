@@ -116,7 +116,7 @@ if ($launcher.version -cne $Version -or $launcher.buildNumber -ne $BuildNumber -
     $launcher.commit -cne $SourceRevisionId -or $launcher.image -cne $imageTag) {
     throw 'Docker launcher metadata does not match this release.'
 }
-$launcherFiles = @('release.json', 'install.ps1', 'install.bat', 'README.txt', 'LICENSE', 'COPYRIGHT', 'docker/install-cli.ps1', 'docker/localnotion-docker.ps1', 'docker/LocalNotionDockerLauncher.cs')
+$launcherFiles = @('release.json', 'install.ps1', 'install.bat', 'README.txt', 'LICENSE', 'COPYRIGHT', 'docker/install-cli.ps1', 'docker/localnotion-docker.ps1', 'docker/LocalNotionDockerLauncher.cs', 'assets/branding/local-notion.ico')
 $launcherZip = [IO.Compression.ZipFile]::OpenRead($launcherPath)
 try {
     $entries = @($launcherZip.Entries | Where-Object { -not $_.FullName.EndsWith('/') } | ForEach-Object FullName)

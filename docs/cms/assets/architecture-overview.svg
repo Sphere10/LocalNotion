@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="430" viewBox="0 0 1250 430" role="img" aria-labelledby="diagram-title diagram-description">
+  <title id="diagram-title">From Notion to your website</title>
+  <desc id="diagram-description">Write CMS rows and page blocks in Notion, pull and render with Local Notion and themes, transfer generated files using an optional Git workflow, then serve the website through Nginx or another host and a domain. CMS properties choose role, address and appearance; blocks contain words, images and links. Notion is the authoring source, while HTML, media and routes are generated outputs. Automatic Git push depends on configuration.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1250" height="430" fill="#ffffff"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#172b41">
+    <text x="36" y="42" font-size="30" font-weight="700">From Notion to your website</text>
+    <text x="36" y="70" font-size="18" fill="#475569">Four stages turn editable content into a website visitors can use.</text>
+
+    <g stroke="#cbd5e1" stroke-width="1.5">
+      <rect x="36" y="96" width="258" height="184" rx="16" fill="#eef8f5" stroke="#b8d9ce"/>
+      <rect x="342" y="96" width="258" height="184" rx="16" fill="#eff6ff" stroke="#bfd4ef"/>
+      <rect x="648" y="96" width="258" height="184" rx="16" fill="#f6f3ff" stroke="#d4c8ec"/>
+      <rect x="954" y="96" width="258" height="184" rx="16" fill="#fff7ed" stroke="#ecd1ae"/>
+    </g>
+    <g fill="none" stroke="#64748b" stroke-width="2.2" marker-end="url(#arrow)">
+      <path d="M 306 185 H 328"/>
+      <path d="M 612 185 H 634"/>
+      <path d="M 918 185 H 940"/>
+    </g>
+
+    <g>
+      <circle cx="66" cy="127" r="14" fill="#22654f"/>
+      <text x="66" y="133" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">1</text>
+      <text x="90" y="134" font-size="22" font-weight="700">Write in Notion</text>
+      <text x="56" y="177" font-size="19">CMS rows + page blocks</text>
+      <text x="56" y="207" font-size="19">Your editable source</text>
+      <path d="M 56 229 H 274" stroke="#b8d9ce" stroke-width="1.2"/>
+      <text x="56" y="257" font-size="18" fill="#285746">Save the content</text>
+    </g>
+    <g>
+      <circle cx="372" cy="127" r="14" fill="#285f9b"/>
+      <text x="372" y="133" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">2</text>
+      <text x="396" y="134" font-size="22" font-weight="700">Pull and render</text>
+      <text x="362" y="177" font-size="19">Local Notion + themes</text>
+      <text x="362" y="207" font-size="19">HTML, media and routes</text>
+      <path d="M 362 229 H 580" stroke="#bfd4ef" stroke-width="1.2"/>
+      <text x="362" y="257" font-size="18" fill="#315b83">Preview the result</text>
+    </g>
+    <g>
+      <circle cx="678" cy="127" r="14" fill="#6b4598"/>
+      <text x="678" y="133" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">3</text>
+      <text x="702" y="134" font-size="22" font-weight="700">Publish files</text>
+      <text x="668" y="177" font-size="19">Transfer generated files</text>
+      <text x="668" y="207" font-size="19">Git is optional</text>
+      <path d="M 668 229 H 886" stroke="#d4c8ec" stroke-width="1.2"/>
+      <text x="668" y="257" font-size="18" fill="#634d7b">Use your chosen workflow</text>
+    </g>
+    <g>
+      <circle cx="984" cy="127" r="14" fill="#8f541e"/>
+      <text x="984" y="133" text-anchor="middle" font-size="18" font-weight="700" fill="#ffffff">4</text>
+      <text x="1008" y="134" font-size="22" font-weight="700">Serve website</text>
+      <text x="974" y="177" font-size="19">Nginx or your web host</text>
+      <text x="974" y="207" font-size="19">Your domain + HTTPS</text>
+      <path d="M 974 229 H 1192" stroke="#ecd1ae" stroke-width="1.2"/>
+      <text x="974" y="257" font-size="18" fill="#785124">Check the live website</text>
+    </g>
+
+    <rect x="36" y="300" width="1176" height="91" rx="12" fill="#f5f7fa" stroke="#dbe2ea"/>
+    <path d="M 644 316 V 375" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="56" y="327" font-size="18" font-weight="700">What you edit in Notion</text>
+    <text x="56" y="353" font-size="18">Properties: role · address · appearance</text>
+    <text x="56" y="378" font-size="18">Blocks: words · images · links</text>
+    <text x="668" y="327" font-size="18" font-weight="700">What Local Notion creates</text>
+    <text x="668" y="353" font-size="18">HTML · media · routes are generated outputs</text>
+    <text x="668" y="378" font-size="18">Notion remains the authoring source</text>
+    <text x="36" y="418" font-size="18" fill="#475569">Automatic Git push runs only when configured. Verify each stage before moving to the next.</text>
+  </g>
+</svg>

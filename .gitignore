@@ -208,3 +208,7 @@ set-dev-path.bat
 /.env
 /.env.*
 !/.env.example
+# Generated native aliases of the root facts file
+/CLAUDE.md
+/GEMINI.md
+/.dependencies/

@@ -8,6 +8,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LocalNotion.Core;
 using NUnit.Framework;
@@ -154,6 +156,151 @@ public class NginxMappingsGeneratorTests {
 		Assert.That(await File.ReadAllTextAsync(renderFile), Is.EqualTo("registered render"));
 		Assert.That(File.Exists(obsoleteFile), Is.False);
 	}
+
+	[TestCase("cms/report.html", "/cms/report.html")]
+	[TestCase("./cms/report.html", "/cms/report.html")]
+	[TestCase("cms/../cms/report.html", "/cms/report.html")]
+	[TestCase(@"cms\report.html", "/cms/report.html")]
+	[TestCase("cms/private report.html", "/cms/private report.html")]
+	[TestCase("cms/100% complete.html", "/cms/100% complete.html")]
+	[TestCase("pages/id/Private Page.html", "/pages/id/Private Page.html")]
+	[TestCase("cms/report%20.html", "/cms/report%20.html")]
+	public async Task MappingProtectsFriendlyAndPhysicalCmsUrls(string renderPath, string physicalUrl) {
+		var fullPath = Path.GetFullPath(renderPath.ToUnixPath(), _fixtureRoot);
+		Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+		await File.WriteAllTextAsync(fullPath, "protected fixture content");
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/report", RenderPath = renderPath, Auth = "fixture-user:fixture-password" });
+		var mappings = await GenerateMappings();
+		var friendly = Locations(mappings, "/private/report");
+		var physical = Locations(mappings, physicalUrl);
+		Assert.That(friendly, Has.Length.EqualTo(1));
+		Assert.That(physical, Has.Length.EqualTo(1), "A static-file request must not bypass the friendly URL's authentication.");
+		Assert.That(physical[0], Is.EqualTo(friendly[0]), "The physical alias must use the identical credential, target and MIME policy.");
+		Assert.That(physical[0], Does.Contain("if ($http_authorization != \"Basic " + "fixture-user:fixture-password".ToBase64() + "\")"));
+	}
+
+	[Test]
+	public async Task MappingDoesNotChangePublicResourceUrls() {
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "public/report", RenderPath = "cms/public.html" });
+		var mappings = await GenerateMappings();
+		Assert.That(Locations(mappings, "/public/report"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/public/report")[0], Does.Not.Contain("$http_authorization"));
+		Assert.That(Locations(mappings, "/cms/public.html"), Is.Empty);
+	}
+
+	[Test]
+	public async Task MappingDoesNotDuplicateAnAlreadyProtectedPhysicalUrl() {
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "cms/report.html", RenderPath = "cms/report.html", Auth = "fixture-user:fixture-password" });
+		var mappings = await GenerateMappings();
+		Assert.That(Locations(mappings, "/cms/report.html"), Has.Length.EqualTo(1));
+	}
+
+	[Test]
+	public async Task MappingDeduplicatesProtectedPhysicalTargets() {
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/first", RenderPath = "cms/report.html", Auth = "fixture-user:fixture-password" });
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/second", RenderPath = "./cms/report.html", Auth = "fixture-user:fixture-password" });
+		var mappings = await GenerateMappings();
+		Assert.That(Locations(mappings, "/private/first"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/private/second"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/cms/report.html"), Has.Length.EqualTo(1));
+	}
+
+	[Test]
+	public async Task MappingAddsDecodedPhysicalLocationDespiteEncodedFriendlySlug() {
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "cms/Private%20Page.html", RenderPath = "cms/Private Page.html", Auth = "fixture-user:fixture-password" });
+		var mappings = await GenerateMappings();
+		Assert.That(Locations(mappings, "/cms/Private%20Page.html"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/cms/Private Page.html"), Has.Length.EqualTo(1));
+	}
+
+	[TestCase("cms/$variable.html")]
+	[TestCase("cms/$variable/../report.html")]
+	[TestCase("cms/\"quote/../report.html")]
+	[TestCase("cms/line\nbreak.html")]
+	[TestCase("../outside.html")]
+	[TestCase("cms/sitemap.xml")]
+	[TestCase("sitemap.xml")]
+	public async Task MappingRejectsUnsafeProtectedTargetsWithoutReplacingExistingMap(string renderPath) {
+		await _generator.GenerateNGinxFolder();
+		var path = Path.Combine(_generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName);
+		await File.WriteAllTextAsync(path, "previous protected mappings");
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/report", RenderPath = renderPath, Auth = "fixture-user:fixture-password" });
+		await Assert.ThatAsync(async () => await _generator.GenerateUrlMappingsFile(), Throws.TypeOf<InvalidOperationException>());
+		Assert.That(await File.ReadAllTextAsync(path), Is.EqualTo("previous protected mappings"));
+	}
+
+	[TestCase("cms/REPORT.html")]
+	[TestCase("CMS/report.html")]
+	[Platform("Win")]
+	public async Task MappingRejectsExistingProtectedFileWithMismatchedCase(string renderPath) {
+		CreateRender("report.html");
+		await _generator.GenerateNGinxFolder();
+		var path = Path.Combine(_generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName);
+		await File.WriteAllTextAsync(path, "previous protected mappings");
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/report", RenderPath = renderPath, Auth = "fixture-user:fixture-password" });
+		await Assert.ThatAsync(async () => await _generator.GenerateUrlMappingsFile(), Throws.TypeOf<InvalidOperationException>());
+		Assert.That(await File.ReadAllTextAsync(path), Is.EqualTo("previous protected mappings"));
+	}
+
+	[TestCase(null, "cms/report.html")]
+	[TestCase("different-user:different-password", "cms/report.html")]
+	[TestCase("fixture-user:fixture-password", "cms/other.html")]
+	public async Task MappingRejectsPhysicalUrlPolicyCollisionsWithoutReplacingExistingMap(string authentication, string otherRenderPath) {
+		await _generator.GenerateNGinxFolder();
+		var path = Path.Combine(_generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName);
+		await File.WriteAllTextAsync(path, "previous protected mappings");
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "private/report", RenderPath = "cms/report.html", Auth = "fixture-user:fixture-password" });
+		_repository.AddOrUpdateCMSItem(new CMSItem { Slug = "cms/report.html", RenderPath = otherRenderPath, Auth = authentication });
+		await Assert.ThatAsync(async () => await _generator.GenerateUrlMappingsFile(), Throws.TypeOf<InvalidOperationException>());
+		Assert.That(await File.ReadAllTextAsync(path), Is.EqualTo("previous protected mappings"));
+	}
+
+	[Test]
+	public async Task MappingProtectsRawChildPagePhysicalUrlWithInheritedAuthentication() {
+		var root = Path.Combine(_fixtureRoot, "online");
+		Directory.CreateDirectory(root);
+		using var repository = await LocalNotionRepository.CreateNew(root, pathProfile: new LocalNotionPathProfile { Mode = LocalNotionMode.Online }, logger: new NoOpLogger());
+		var parent = new LocalNotionPage { ID = Guid.NewGuid().ToString(), Name = "parent", CMSProperties = new CMSProperties { Authentication = "fixture-user:fixture-password" } };
+		var child = new LocalNotionPage { ID = Guid.NewGuid().ToString(), Name = "child", ParentResourceID = parent.ID };
+		child.Renders[RenderType.HTML] = new RenderEntry { Slug = "pages/child", LocalPath = "pages/child.html" };
+		repository.AddResource(parent);
+		repository.AddResource(child);
+		var generator = new NginxMappingsGenerator(repository);
+		await generator.GenerateNGinxFolder();
+		await generator.GenerateUrlMappingsFile();
+		var mappings = await File.ReadAllTextAsync(Path.Combine(generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName));
+		Assert.That(Locations(mappings, "/pages/child.html"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/pages/child.html")[0], Is.EqualTo(Locations(mappings, "/pages/child")[0]));
+		Assert.That(Locations(mappings, "/pages/child.html")[0], Does.Contain("$http_authorization"));
+	}
+
+	[Test]
+	public async Task MappingProtectsRawAttachmentWithInheritedAuthenticationAndMimeType() {
+		var root = Path.Combine(_fixtureRoot, "online");
+		Directory.CreateDirectory(root);
+		using var repository = await LocalNotionRepository.CreateNew(root, pathProfile: new LocalNotionPathProfile { Mode = LocalNotionMode.Online }, logger: new NoOpLogger());
+		var parent = new LocalNotionPage { ID = Guid.NewGuid().ToString(), Name = "parent", CMSProperties = new CMSProperties { Authentication = "fixture-user:fixture-password" } };
+		var file = new LocalNotionFile { ID = Guid.NewGuid().ToString(), Title = "attachment", ParentResourceID = parent.ID, MimeType = "application/pdf" };
+		file.Renders[RenderType.File] = new RenderEntry { Slug = "files/private-document", LocalPath = "files/Private Document.pdf" };
+		repository.AddResource(parent);
+		repository.AddResource(file);
+		var generator = new NginxMappingsGenerator(repository);
+		await generator.GenerateNGinxFolder();
+		await generator.GenerateUrlMappingsFile();
+		var mappings = await File.ReadAllTextAsync(Path.Combine(generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName));
+		Assert.That(Locations(mappings, "/files/Private Document.pdf"), Has.Length.EqualTo(1));
+		Assert.That(Locations(mappings, "/files/Private Document.pdf")[0], Is.EqualTo(Locations(mappings, "/files/private-document")[0]));
+		Assert.That(Locations(mappings, "/files/Private Document.pdf")[0], Does.Contain("default_type application/pdf;"));
+	}
+
+	private async Task<string> GenerateMappings() {
+		await _generator.GenerateNGinxFolder();
+		await _generator.GenerateUrlMappingsFile();
+		return await File.ReadAllTextAsync(Path.Combine(_generator.CalculateNGinxFolderPath(), "conf", NginxMappingsGenerator.MappingFileName));
+	}
+
+	private static string[] Locations(string mappings, string uri) => Regex.Matches(mappings, "^location = (?:\"(?<uri>[^\"]+)\"|(?<uri>[^ \\r\\n]+)) \\{(?<body>.*?)(?=^location |\\z)", RegexOptions.Multiline | RegexOptions.Singleline)
+		.Where(match => match.Groups["uri"].Value == uri).Select(match => match.Groups["body"].Value.Trim()).ToArray();
 
 	private string CreateRender(string fileName, string content = "render") {
 		Directory.CreateDirectory(_cmsPath);

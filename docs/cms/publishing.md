@@ -70,6 +70,8 @@ Authentication is rich text. The current Nginx integration uses a `username:pass
 
 Use HTTPS. Verify unauthenticated denial and authorized access after deployment, including child pages, attachments and alternate file URLs. An authorized HTTP 200 is not evidence that unauthorized access is denied.
 
+Generated Nginx mappings protect both an authenticated route and its repository-relative backing-file URL with the same credential and MIME policy. This also covers raw pages and attachments with inherited authentication. Physical file locations retain their case and literal filename characters; spaces are quoted in the configuration rather than URL-encoded. Existing route entries retain their order and content. Incompatible policies for a shared target, a conflicting physical URL, an escaping path or unsupported protected-path syntax stop generation before replacing the existing mappings. Resolve the source conflict and regenerate; do not hand-edit a generated map as the durable fix. After upgrading the generator, regenerate, validate and activate the host configuration, then test anonymous requests to both forms of URL.
+
 Registries, cached objects, Authentication values, generated mappings and Git history may contain secrets. Basic Authorization encoding is reversible. Keep operational repositories private, protect key files, and avoid full config/object dumps in screenshots/logs/issues. Configure the host to deny access to `.localnotion`, Git metadata and secret files. Check that alternate static-file paths do not bypass route authorization.
 
 ## Verify each boundary

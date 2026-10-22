@@ -1,60 +1,65 @@
 # Notion CMS Guide
 
-Local Notion uses a single Notion database to define an entire website. Each row represents a page, section, Gallery card or shared component such as a header, navigation bar or footer.
+Build and maintain a website in Notion. Write the content with native blocks, organize the website in one CMS database, and use Themes to give each component its intended presentation. Local Notion downloads that source and generates the website's pages, media and routes.
 
-Write content with native Notion blocks and use the database properties to control its location, publication status and presentation. Local Notion downloads this content and generates HTML, media and website routes. Deploy the generated files to a configured web host using Git or another file-transfer method. This guide covers CMS authoring, layout, styling and deployment; the [Local Notion Manual](https://sphere10.com/products/localnotion/local-notion-manual) provides installation instructions and the complete command reference.
+This guide starts with everyday editing and a small complete website. It then explains page structure, reusable design, navigation and publication. The appendices retain the full CMS schema, Tags and stock Theme lookup. Installation and the complete command reference belong in the [Local Notion Manual](https://sphere10.com/products/localnotion/local-notion-manual).
 
-![A filtered view of the staging CMS in Notion, showing the Local Notion product page’s Section rows and their Item, Type, Status, Themes and Sequence properties.](assets/notion-cms-table.jpg)
+## 1. Start in Notion
 
-## 1. Start with one database for the whole website
+<!-- figure-row: editor-cms-table -->
 
-One CMS database can supply the entire website. Rows in the same table define complete pages, page sections, Gallery cards and shared components such as navigation and footers. Separate databases are not required for each component.
+One CMS database can supply the whole website. Each row is a Notion page: its properties describe its role and website location, while its body contains the words, pictures, columns and links visitors will see.
 
-Each row is a Notion page with **properties** and a **content body**. Properties define its CMS Type, website location, order, publication settings and design treatments. Open the row to author its body with native Notion paragraphs, headings, lists, images, columns and links.
+Open a row to edit its content. Use the table to manage properties such as Type, Status, Themes and Sequence. A filtered database view makes this easier without creating another CMS or moving the underlying rows.
 
-The website workflow has four stages:
+![A CMS database view showing the page's Sections and their editing properties.](assets/guide-editor-cms-table.jpg)
+<!-- /figure-row -->
 
-1. **Write in Notion.** Edit the database properties and the blocks inside its rows.
-2. **Pull and render with Local Notion.** Download the content and turn it into HTML, media and website routes on your computer.
-3. **Publish the generated files.** Transfer the website to its host. Your setup may use Git or another file-transfer workflow.
-4. **Serve the website.** Nginx or another configured web server answers visitors at your domain.
+### Understand the Four Responsibilities
 
-Notion is the authoring source. Saving a Notion edit does not update the hosted website until the content has been pulled, rendered and published. Generated HTML is output: a later render can replace direct changes made to it.
+| Responsibility | Where It Belongs |
+| --- | --- |
+| Content | Native Notion paragraphs, headings, lists, images, columns and child Pages. |
+| Website Structure | CMS Type, address fields, Sequence and native Page containment. |
+| Presentation | The selected base theme, compatible modifiers and reusable companion themes. |
+| Publication | Local Notion's download/render workflow and the configured web host. |
 
-![One Notion CMS database supplies the whole website; Local Notion produces files for the publishing workflow and web host.](assets/cms-one-database.png)
+A Theme cannot publish a Draft Page, create a missing image or provide a form submission service. A Notion database view does not determine which rows the website publishes.
 
-## 2. Prepare your Notion editing space
+<!-- figure-row: one-database-diagram -->
+Keep the website's content and shared components in one CMS database. Use their Types and locations to compose pages instead of creating a separate database for every visible component.
 
-Open the CMS database connected to the website. Keep its website rows in that database. For an existing site, identify the associated local repository and staging address before making changes.
+The body remains native Notion content. The database properties connect that content to the website's structure and presentation.
 
-Use the exact property names and types listed in section 9. Columns may be hidden or reordered in individual Notion views without changing the database schema. Renaming a required property can prevent Local Notion from reading it correctly.
+![One CMS database supplies pages, Sections, collections and shared framing.](assets/guide-one-database-diagram.png)
+<!-- /figure-row -->
 
-Use `create-cms` in Local Notion **1.7.0 or later** to create a blank CMS database with the required properties and preset choices. Earlier releases, including `v1.6.3` (`1.6.3.7`) and `1.5.0.12`, do not provide this command. Run `localnotion create-cms --help` to check the executable before following section 7.1. An existing CMS with the required schema can also be used.
+### Choose the Right Owner
 
-**2.1 Create filtered Notion views**
+Use **Page** for a complete article or compact page; **Section** for one band of a longer page; **Gallery** for a growing collection of cards with detail pages. Use **Header**, **NavBar** and **Footer** for shared framing. **Internal** is an advanced customization owner.
 
-Create filtered views of the same CMS database to separate editing tasks without splitting the website data:
+Begin with the row that owns the content you want to change. Editing a Footer's text is different from hiding that Footer on one Page. Styling an image is different from changing the background of its Section.
 
-| View | Suggested filter | Visible columns |
-| --- | --- | --- |
-| **Pages** | Type is Page | Item, Status, Root, Category1, Summary, Sequence. |
-| **Sections** | Type is Section | Item, Status, Root, categories, Sequence, Themes. Sort by path fields, then Sequence. |
-| **Gallery cards** | Type is Gallery | Item, Root, categories, Status, Summary, Sequence. A Notion gallery-shaped view can be convenient here. |
-| **Shared framing** | Type is Header, NavBar or Footer | Item, Type, Root, categories, Status, Themes. |
-| **Customization** | Type is Internal | Item, Root and categories. Keep advanced changes deliberate. |
-| **Ready to review** | Status is QA | Item, Type, path fields and Edited On. |
+### Check Your Executable and Theme Package
 
-Use an **OR** filter for Header, NavBar and Footer in the Shared framing view. View filters affect the Notion editor only: a row excluded from a view can still publish. Selecting Notion’s Gallery view layout also does not change the CMS Type of its rows.
+> [!NOTE]
+> Features depend on the executable and installed themes. A command implemented in source is not necessarily in the binary you downloaded.
 
-Maintain an unfiltered view for database administration. Use the filtered views for routine editing, while preserving the shared path fields and composition relationships within the single CMS.
+Check the selected executable's help before following a command recipe:
 
-## 3. Build a small complete website
+```sh
+localnotion --help
+localnotion create-cms --help
+localnotion git --help
+```
 
-The following procedure creates a homepage, an About page, shared navigation, a footer and a Gallery collection. The item names and paths are neutral examples; substitute the required public content and domain.
+If a command is unavailable, use the documented alternative for that build. Keep older compatibility notes tied to their named renderer rather than applying them to every website. The stock Theme lookup also does not install custom theme packages.
 
-**3.1 Write a simple homepage**
+## 2. Build a Small Complete Website
 
-Create a new row with these properties:
+Create a homepage, an About Page, navigation, a Footer and a small card collection. Use these neutral names as examples and substitute your own public content.
+
+### Create the Homepage
 
 | Property | Value |
 | --- | --- |
@@ -62,59 +67,281 @@ Create a new row with these properties:
 | Type | Page |
 | Status | Published |
 | Custom Slug | `/` |
-| Summary | Services, information and contact details. |
-| Root and Category1–Category5 | Leave blank. |
-| Publish On, Themes, Tags, Authentication | Leave blank. |
+| Summary | A useful description of the website. |
+| Root and Category1–Category5 | Blank. |
+| Publish On, Themes, Tags and Authentication | Blank for the first public example. |
 
-Open the homepage row. Add an introductory paragraph, a Heading 2 for the main service or topic, and a paragraph beneath it. Insert an Image block and a descriptive caption. The default Page template displays Item as the page title; omit a duplicate Heading 1 from the body.
+Open the row and add an introduction, a Heading 2 and supporting text. Insert a real Image block with a useful caption. The standard Page template can display Item as the title; avoid adding a duplicate Heading 1 unless the selected page design deliberately owns that title.
 
-Leave Themes empty for the initial render. The `empty` theme intentionally suppresses visible content. Wait for Notion to save, reopen the row and confirm that the body content is retained.
+Leave the Themes selection empty for the first preview. Selecting the Theme named `empty` is different: that Theme intentionally suppresses visible content.
 
-**3.2 Add a second page**
+### Add About, Navigation and a Footer
 
-Create **About Us** with Type Page and Status Published. Leave Root, categories and Custom Slug blank. Add the page content and a concise Summary. Its calculated address is `/about-us`.
+Create **About Us**, Type Page, Status Published. Leave its address fields blank for the calculated `/about-us` route. Write the Page and its Summary.
 
-Insert a native **Breadcrumb** block near the beginning to display the page’s website ancestry. Local Notion calculates this trail from the CMS routes. The trail is independent of native Notion page containment in the sidebar.
+Create **Shared Navigation**, Type NavBar, and **Shared Footer**, Type Footer, with blank address fields. Add labelled links to Home, About Us and Cards. Use public contact information in the Footer. Root framing can be inherited by descendant routes, so author it once.
 
-**3.3 Add navigation and a footer**
+For a website still using the legacy 1.5.0.12 renderer, follow the framing compatibility note in Appendix A.3. Its Hidden framing workaround prevents an older composition defect; Hidden does not disable framing selected for a route.
 
-Create **Shared Navigation**, Type NavBar, and **Shared Footer**, Type Footer. Leave Root, categories and Custom Slug blank to place them at the website root. Apply the Hidden status compatibility guidance in section 9.3 for the older renderer.
-
-On 1.5.0.12, Hidden prevents pure framing rows from being counted as an additional ordinary Page body at the same route. Selected navigation and footer content still render. Keep the homepage Page Published.
-
-In Shared Navigation, add linked paragraphs labelled Home, About Us and Cards. Set each destination and use a concise label. Native Notion page links can resolve through Local Notion; verify their generated addresses after pulling. For website links, use the hosted route rather than a path guessed from a local HTML filename.
-
-In Shared Footer, add public contact information and the required links. Check every destination. A menu label or button theme does not create a destination page, form or submission service.
-
-A root NavBar and Footer can be inherited by descendant routes. Author their shared content once rather than duplicating it in each Page body.
-
-**3.4 Add a gallery of cards**
-
-Create three more rows:
+### Add a Card Collection
 
 | Item | Type | Status | Root | Category1 | Sequence |
 | --- | --- | --- | --- | --- | ---: |
-| Design service | Gallery | Published | Cards | Design | 10 |
-| Website service | Gallery | Published | Cards | Build | 20 |
-| Design article | Gallery | Published | Cards | Design | 30 |
+| Design Service | Gallery | Published | Cards | Design | 10 |
+| Website Service | Gallery | Published | Cards | Build | 20 |
+| Design Article | Gallery | Published | Cards | Design | 30 |
 
-Leave Custom Slug and Category2–Category5 blank. Add a concise Summary to each row. Open each row, insert a first Image block and write the detail-page content. Select `@UseFirstImageAsFeature` in Tags when that image should be the preferred feature image.
+Add a Summary, first Image and detail content to each row. Select `@UseFirstImageAsFeature` when that image should be preferred for the card. The collection is `/cards`; Website Service opens `/cards/website-service`. Gallery categories provide badges and filter values rather than extra URL levels.
 
-The collection route is `/cards`. The Website service card opens `/cards/website-service`. For Gallery rows, Root groups the collection and Item supplies the final path segment. Category fields provide badges and filter values rather than additional URL levels.
+Products, photographs, articles and team members can all be Gallery subjects. The subject does not change the component's behavior.
 
-The installed Gallery collection has its own light card body and large shadow. The `color_card_…` choices style authored callout cards; they do not recolour this generated collection simply because both components look like cards.
+### Compare the Collection and Its Detail Pages
 
-Use consistent category labels for browsing and filtering. Product types, team roles and photograph subjects are suitable examples. Differences in spelling or capitalization can create unintended categories.
+<!-- figure-row: tech-all-current -->
 
-![A real staging gallery expands the same pattern: each card comes from its own CMS row.](assets/gallery-overview.png)
+Each Gallery row supplies both a card and the Page it opens. Keep category spelling consistent, use comparable image proportions and write Summaries that help visitors choose a card.
 
-![Selecting Design narrows the collection to cards carrying that category.](assets/gallery-filtered.png)
+Test a category filter, open a card and follow the route back to the collection. A card's appearance alone does not prove its destination works.
 
-**3.5 Connect Local Notion and preview the first result**
+![A Gallery collection with category filters and cards that open detail pages.](assets/guide-tech-all-current.jpg)
+<!-- /figure-row -->
 
-Use the existing staging address to inspect an already hosted website. For a new Nginx website, review section 7.5 before initialization; it describes the domain and hosting-generation options required by that setup.
+<!-- figure-row: tech-filtered-current -->
+A collection's category filters come from its Gallery rows. Keep labels consistent and choose categories that help visitors find the right subject.
 
-Create an empty local folder and initialize it with the CMS **database ID**. This PowerShell example reads the integration key from a private file so that its value is not written into the command stored in shell history:
+Selecting a filter changes the visible cards; it does not change the underlying CMS Type or move the card Pages.
+
+![A Gallery filtered by one of its authored categories.](assets/guide-tech-filtered-current.jpg)
+<!-- /figure-row -->
+
+## 3. Structure Pages, Sections and Child Pages
+
+### Let the CMS Calculate Normal Routes
+
+For an ordinary Page, Local Notion combines consecutive nonblank Root and category fields with Item. Fill the hierarchy without gaps.
+
+| Item | Root | Category1 | Normal Route |
+| --- | --- | --- | --- |
+| About Us | Blank | Blank | `/about-us` |
+| Getting Started | Guides | CMS | `/guides/cms/getting-started` |
+| Writing Content | Guides | CMS | `/guides/cms/writing-content` |
+
+A blank Root stops ordinary category traversal; Category2 cannot skip a blank Category1. Database relations and view order do not define this hierarchy.
+
+Leave **Custom Slug** blank for normal calculated routes. Use an override only for a deliberate routing requirement, such as `/` for a simple Page homepage. Enter a page path, not a complete domain or an anchored visitor link. A literal `#` in Custom Slug does not create a Section anchor.
+
+### Compose a Longer Page from Sections
+
+Create Published Sections with the same base location and distinct Sequence values. For a `/studio` page:
+
+| Item | Type | Root | Sequence |
+| --- | --- | --- | ---: |
+| Welcome | Section | Studio | 10 |
+| What We Do | Section | Studio | 20 |
+| Contact | Section | Studio | 30 |
+
+The Sections become one continuous route. Their titles supply Section anchors; they do not become three independent detail Pages. Leave space between Sequence values so another Section can be inserted at 15. Equal values do not establish a dependable editorial order.
+
+Keep one composition strategy at each route. Before replacing an ordinary Page with a Section group, move or retire the competing Page and regenerate the affected route.
+
+### Give Each Section a Clear Job
+
+<!-- figure-row: services-current -->
+
+Use an introduction to explain the page, a content band to develop the subject and a closing band for the next action. Separate Sections make those pieces independently editable and allow compatible presentation choices.
+
+A first Section is still body content. It does not become the website's Header merely because it comes first.
+
+![Separately authored Sections combined into one continuous page.](assets/guide-services-current.jpg)
+<!-- /figure-row -->
+
+### Create Detail Content as Native Child Pages
+
+Insert a native **Page** block inside the owning Page or Section where its link should appear. Open that child Page and write only the detail belonging to that subject. For example, a Services Section can contain child Pages named **Architecture**, **Implementation** and **Support**.
+
+> [!TIP]
+> The child Page's title supplies the displayed embedded Page-link name. Name the Page as you want the link to read. Renaming it can also change its calculated route, so regenerate and check incoming links and breadcrumbs.
+
+A child of a Section uses the Section's base route, without its fragment, then appends the child's title. For example, a Details child of `/company#services` becomes `/company/details`. Verify the calculated result rather than inventing an HTML filename or manually repeating the title in a separate external link.
+
+Native child Pages inherit their owner's publication, scheduling, Tags, authentication and category context. Their Summary is not simply copied. A child Page is not another CMS database row with its own independently editable Type and publication properties. Choose a separate CMS row when those controls must be independent.
+
+### Keep Links and Containment Consistent
+
+<!-- figure-row: ai-detail-current -->
+
+A real child Page establishes containment. A **Link to Page** alias points to an existing Page and does not move or reparent it. Neither a database view nor a URL override changes native containment.
+
+Keep the child link in the intended position in the parent body, use one native Breadcrumb near the beginning of the child, and test the generated Page and its return navigation.
+
+![The AI Architecture detail Page with its Breadcrumb, main title and typed secondary heading.](assets/guide-ai-detail-current.jpg)
+<!-- /figure-row -->
+
+## 4. Manage Editing Views and Publication
+
+Create focused views of the same CMS database. Views are editing tools; they do not publish, hide, reparent or reorder website content by themselves.
+
+| View | Filter and Order |
+| --- | --- |
+| A Page's Sections | Type is Section **AND** the exact address fields defining that base route; sort by Sequence ascending. |
+| Independent Pages | Type is Page, optionally restricted to the intended branch. |
+| Gallery Cards | Type is Gallery and Root is the intended collection; sort by Sequence. |
+| Shared Framing | Type is Header **OR** NavBar **OR** Footer; optionally restrict its route. |
+| Customization | Type is Internal. |
+| Ready to Review | Status is QA, with useful address and edit columns visible. |
+
+For a Services editing view, show its overview Section rows rather than every row whose name contains “Services.” Use exact Type and address conditions. Give independently authored detail-page Sections their own view when they belong to another route. Native child Pages remain within their owning content rather than becoming duplicate CMS rows.
+
+Keep an unfiltered administrative view. Hide irrelevant columns in routine views instead of renaming or removing required properties. Show Item, Type, Status, Themes and Sequence when arranging a Section group.
+
+Ordinary Page, Section and Gallery content requires **Published** and no future **Publish On** date. The date is evaluated against UTC during generation. Draft, QA and Hidden do not publish ordinary content. A scheduled or Hidden change takes effect only after the next completed download, render and publication cycle.
+
+Framing is selected independently of that ordinary-content gate. A Draft Footer can still frame a Page. Use deliberate placement or the supported hide Tags on the content owner to change framing behavior. Appendix A gives the complete rules.
+
+## 5. Write and Arrange the Content
+
+### Use Real Structure
+
+Use native headings for the reading hierarchy, paragraphs for explanation and lists for parallel points. Choose heading levels for their meaning, then use the theme to adjust their visual size. A small-looking heading is still a heading; a bold paragraph is not a substitute.
+
+Write clear titles in consistent Title Case, preserving names such as .NET, iOS and scikit-learn. Keep the main title stable and descriptive. Short labels may use a different treatment when the design calls for it; do not apply an uppercase transformation to every heading or link.
+
+### Build Columns in Notion
+
+Drag a block beside another to create native columns. Put the main heading and introduction before supporting columns when that provides the clearest reading order. On a narrow screen, columns stack in their authored order.
+
+`columns_md` changes the breakpoint behavior of an existing column list. `columns_middle` aligns shorter content within available height. Neither creates columns from ordinary paragraphs.
+
+### Distinguish Badges, Links and Lists
+
+Format a short span as **inline code** and select `badge` to make a static label. Use a compatible auxiliary color for its accent. A separate Code block is a different element. A badge is not automatically a link, and a list of tool names should not become a row of unrelated destinations.
+
+Create a labelled link only where navigation is intended. Embedded Page links open their actual Pages; ordinary rich-text links need real destinations. `bullet_check` decorates native bullet points with check-circle markers; it does not create interactive checkbox state.
+
+Preserve native link indicators when changing a theme. Check icon-to-text spacing, first-line alignment and wrapped labels. Hover and keyboard focus should remain visible against the owning Section's background; an underline on interaction can clarify the destination without making every resting label bold.
+
+### Use Notes as Notes
+
+An ordinary Callout is useful for an information or warning note. Use a concise message, appropriate icon and readable block background.
+
+`callout_card` has a different contract: the Callout's own text is a destination URL, while its child blocks supply the visible content. Do not apply that modifier to a prose note unless it is intentionally being authored as a link card.
+
+## 6. Compose a Reusable Theme
+
+### Separate Base Design, Modifiers and Companions
+
+A base theme establishes the site's visual language. Native modifiers adjust supported concerns such as image width, spacing, color, shapes and motion. A reusable companion can define a semantic component such as an introduction, feature grid or closing action band.
+
+Use the selected package's documented owner, block structure and order. Later overlays can replace earlier templates or tokens, so an intentional companion may need to come after a native modifier. A Page-link companion, for example, can replace the ordinary link slot while retaining the native destination and icon contract.
+
+Do not assume every modifier remains a harmless cosmetic layer under every companion. Use one deliberate choice for a concern rather than stacking contradictory alignments or colors. Custom package names are separate from the stock preset lookup and must be installed before selection.
+
+### Put Styling in the Styling System
+
+Make reusable visual changes in theme templates, tokens and styles, then select them through the owning CMS row. Preserve native content, semantic roles and existing modifiers that remain compatible. Avoid putting a complete stylesheet into each Page or editing generated HTML as a permanent fix.
+
+Internal rows can provide named tokens consumed by compatible themes. Use them for supported configuration rather than duplicating large page-specific scripts. A native child Page does not acquire its own CMS Themes property: its presentation follows the renderer's inheritance and package contract.
+
+### Choose Color Roles Deliberately
+
+| Role | Intended Concern |
+| --- | --- |
+| `color_text_…` | Main content text. |
+| `color_text_aux_…` | Auxiliary text consumed by compatible heading treatments. |
+| `color_bg_…` | The compatible content container's background. |
+| `color_aux_…` | Small accents such as badges and check circles. |
+| `color_card_…` | Authored Callout cards, rather than every generated Gallery card. |
+
+Inline Notion colors and component templates can override inherited colors. Inspect actual text, links, badges and hover/focus states against each light or dark surface. A named color does not establish adequate contrast by itself.
+
+### Join Sections with Space and Shape
+
+
+Select top and bottom padding on the owning Section. Container padding and internal paragraph margins are different sources of space. A separator also needs enough clearance to avoid crossing headings, pictures or links.
+
+> [!TIP]
+> Use contrasting neighboring backgrounds when a shape should be visible. If the design calls for a line-up treatment on both edges of a band, use a theme role that deliberately supplies the matching top and bottom geometry. Selecting a bottom-edge modifier twice does not create a paired top edge. Keep joins consistent and inspect the complete boundary at narrow widths.
+
+
+### Version Theme Assets Together
+
+Templates and their CSS or JavaScript are one design package. When an asset changes, update its versioned URL consistently wherever the package loads it. Use the package's supported token and asset-path conventions; cross-package references must point to the package that actually owns the asset.
+
+Check the generated URLs and served bytes after publication. A changed filename query is useful only when it identifies the new asset. Do not change unrelated runtime files merely to force a refresh.
+
+Local overrides, including empty files, can mask newer embedded defaults. Preserve intended overrides during upgrades and review their lifecycle before removing them. A later repository opening can restore missing built-in files.
+
+## 7. Add Images, Headers, Cards and Galleries
+
+### Preserve an Image's Natural Proportions
+
+<!-- figure-row: product-screenshots-current -->
+
+Insert a real Image block, use sufficient source detail and give it a descriptive caption. In compatible CMS templates, the caption also supplies alternative text. A cover, body image and listing feature image have different jobs.
+
+![An illustration sized within its column while retaining its natural aspect ratio.](assets/guide-product-screenshots-current.jpg)
+<!-- /figure-row -->
+
+> [!TIP]
+> Prefer an appropriate width or maximum width with automatic height when the complete illustration must remain visible. Use the existing `image_width_…` and `image_maxwidth_…` modifiers before adding custom rules. Alignment needs spare width; minimum dimensions and fixed heights can cause narrow-screen overflow or distortion.
+
+Use `image_framed` or `image_shadow` when that treatment suits the picture. Choose the shadow target before its shared strength. `image_zoomable` controls click-to-enlarge behavior; `animate_image_zoom` controls an entrance effect. Test opening and closing the viewer separately from the image's resting appearance.
+
+### Create a Header with More Than One Slide
+
+A Header is separate framing. In the compatible carousel template, each native Toggle supplies a slide containing its heading, copy, action and images. Add several genuinely different slides when a rotating banner is intended.
+
+An Image captioned exactly `{BACKGROUND}` is treated as the slide background. Use it when cropping is appropriate. Foreground artwork is a separate image and can retain its natural dimensions. Keep any intended overlay or contrast layer as part of the theme's design rather than removing it while replacing artwork.
+
+Header size, fade, controls and particle treatments depend on their actual templates and scripts. Check the active slide, Next/Previous controls, readable overlay and narrow layout. A still picture does not prove a carousel cycles. The Toggle's expanded state in Notion is not a reliable way to choose a different renderer template.
+
+### Author a Small Fixed Card Grid
+
+Create native columns with one Callout per card. Put the destination URL in the Callout's own text and the visible heading, image and description in its child blocks. Select a compatible `callout_card` treatment and appropriate card colors on the owner.
+
+Keep cards comparable in length and check both the outer card and any deliberate child links. With legacy near-full-column-height card templates, arrange additional cards as another column row rather than stacking them within the same column.
+
+Use Gallery rows instead when the collection should grow, carry categories and provide individual card Pages. Authored Callout cards and generated Gallery cards are different mechanisms even when they look similar.
+
+## 8. Add Navigation, Forms and Motion
+
+### Use Native Destinations and Breadcrumbs
+
+Use descriptive navigation labels, verify the calculated route and preserve the native Page-link target where possible. Add one native Breadcrumb near the beginning of a detail Page. Check its ancestry and return link after moving or renaming content.
+
+A root NavBar or Footer can be inherited unless a nearer component replaces it. Headers are local by default; `@UseParentHeader` requests the parent's Header and `@HideHeader` takes precedence. Apply hide Tags to ordinary content, not to the Footer or Header itself.
+
+Test fixed or sticky menus on a long Page. They must leave titles, breadcrumbs, anchor destinations and the Footer visible. Link styling for ordinary content does not necessarily apply to NavBar templates.
+
+### Embed Forms Deliberately
+
+An Embed block or supported integration can display a form, but a button theme and `@ContactForm` do not create a submission backend. Configure the actual form provider, destination and success behavior.
+
+Match the containing Section to the form's surface. A theme outside a third-party iframe cannot freely restyle its internal fields; use the provider's own supported settings. Check labels, required fields, focus, narrow layout and the real submission flow using appropriate test data.
+
+### Keep Typed Text Secondary to the Title
+
+Use a short typed Heading 2 or Heading 3 for a capability line when the selected theme supports it. Separate phrases with a vertical bar, for example `Design the System|Build the Product|Operate the Service`. Keep the main title and navigation stable.
+
+The typing library and compatible template must both be present. Preserve readable text when motion is reduced or the script is unavailable. Check the actual theme definition before combining typing with shadows or other heading replacements.
+
+Apply other motion only after the static layout is sound. Column effects need columns and image effects need images. Test an entrance during scrolling, not just after it has settled. Keep essential content readable when an effect does not initialize.
+
+The native loading circle should be part of the theme's documented lifecycle. Do not permanently hide it with a blanket CSS rule to conceal a stalled dependency. Confirm that fresh navigation reaches usable content; external resources can affect load timing, and a single interrupted navigation does not establish its cause.
+
+## 9. Pull, Preview and Publish
+
+### Create or Connect the CMS
+
+Use an existing CMS with the required schema, or use `create-cms` when the selected executable provides it. Share the intended Notion parent Page with the integration first and grant the capabilities required by the command.
+
+```sh
+localnotion create-cms --parent "YOUR_PARENT_PAGE_UUID" --title "Website CMS"
+```
+
+The command creates a blank CMS rather than website content. If it is unavailable, prepare the schema from Appendix A. Initialize with the **database ID**; Notion's data-source ID is a separate identifier.
+
+For a new empty local folder, a PowerShell example is:
 
 ```powershell
 mkdir website-repository
@@ -123,359 +350,105 @@ localnotion init --cms "YOUR_DATABASE_UUID" --profile website --path "./website-
 Remove-Variable notionKey
 ```
 
-Replace the database ID placeholder and private file path. Protect the key file and exclude it from source control. In the inspected source, `init` accepts `--key` directly but does not resolve `NOTION_API_KEY_FILE`. Credential lookup varies by command and release; consult the installed help.
+Use your own protected key file and exclude it from source control. Reading the value from a file avoids putting the literal token in shell history. Credential lookup is command- and build-specific; use the installed help rather than assuming every command supports the same environment-variable convention.
 
-The example initializes local storage with automatic Git and hosting generation omitted. It does not create CMS content rows, configure a remote server or publish the website.
+### Fetch New Content or Rebuild Downloaded Content
 
-Pull the CMS:
+> [!WARNING]
+> Before either operation in an existing repository, inspect its automatic Git and hosting settings. A configured pull or render can commit and push.
 
 ```sh
 localnotion pull --all --path "./website-repository"
-```
-
-In CMS mode, `--all` selects the configured CMS, and pull normally renders the downloaded content. Inspect the homepage, About Us, `/cards`, a card detail page, navigation and footer at the staging host. Complete the hosting setup in section 7.5 if no host is configured. The website profile generates hosted paths, so opening an HTML file directly does not fully test routes and assets.
-
-Before using these commands in an existing website repository, inspect the settings described in section 7. Pull and render can automatically commit and push when that behavior is enabled.
-
-## 4. Shape the website with Pages, Sections and addresses
-
-The website hierarchy determines public locations and navigation context. Use consistent path fields so that menus, breadcrumbs and page titles describe the same structure.
-
-**4.1 Use normal calculated addresses**
-
-For an ordinary Page, Local Notion combines consecutive nonblank Root and category fields with Item. It normalizes those values to form the public URL.
-
-| Item | Root | Category1 | Resulting normal path |
-| --- | --- | --- | --- |
-| About Us | blank | blank | `/about-us` |
-| Getting Started | Guides | CMS | `/guides/cms/getting-started` |
-| Writing Content | Guides | CMS | `/guides/cms/writing-content` |
-
-Fill hierarchy fields consecutively. A blank Root stops ordinary category traversal; Category2 cannot jump over a blank Category1. Do not use a separate Notion relation or a database view's row order to define the public hierarchy.
-
-Intermediate category paths can generate article or book listings without a dedicated row at each level. Adding an ordinary Page at a category address can change the resulting composition. Regenerate and inspect the affected branch after such a change.
-
-Use **Custom Slug** when the calculated hierarchy does not provide the required address. Set `/` for a simple Page homepage; an Item named Home otherwise normally resolves to `/home`. An explicit override can preserve an established public URL, but ordinary rows should use their calculated addresses.
-
-Enter a page path rather than a hostname or `#` fragment. The inspected slug sanitizer removes a literal hash: `services#contact` can become `servicescontact` instead of producing a contact anchor.
-
-**4.2 Assemble a longer page from Sections**
-
-Use Section rows to compose one continuous page from independently edited parts. Before replacing a Page homepage with Sections, move the Page to another address or set it Hidden and regenerate. An ordinary Page and a Section collection must not compete for the same route.
-
-Create Published Sections with blank Root, categories and Custom Slug:
-
-| Item | Sequence | What goes inside |
-| --- | ---: | --- |
-| Welcome | 10 | A short introduction and a clear next step. |
-| What We Do | 20 | Service descriptions, perhaps in two native Notion columns. |
-| Contact | 30 | Public contact information and a relevant action link. |
-
-Local Notion combines these Sections into the homepage in Sequence order. Category fields determine their common base path, while each title supplies an anchor within that page. For a separate landing page, give its Sections the same location, such as Root Services. If Custom Slug is required on a Section, enter only the base page path.
-
-Set distinct whole-number Sequence values. Numbering Sections 10, 20 and 30 leaves room to insert another at 15. Equal values do not establish a reliable editorial order.
-
-Inspect the generated target before linking to an individual Section. In the older website renderer, the outer section ID is the compact Notion page UUID, and the title has a separately derived anchor. Do not assume a fragment exists from its wording alone.
-
-![A real staging page assembled from Sections containing text, images and authored callout cards.](assets/sections-comparison-v2.jpg)
-
-**4.3 Choose between native child pages and independent CMS rows**
-
-A native Notion child page inside a CMS content row can generate another website page. It inherits publication scheduling, status, Tags, authentication and category information from its owning row. Summary is not simply inherited; preview the combined theme behavior.
-
-Create an independent CMS row when a page requires its own Type, publication settings or location. Use native child pages for content that belongs within one authored resource. Moving a native Page link or changing a database view does not reparent independent CMS rows.
-
-Insert a native Breadcrumb near the beginning of ordinary documentation pages. On 1.5.0.12, unusually deep entries can exceed the widget’s implemented category depth. Use an explicit linked trail for affected entries and verify its destinations.
-
-## 5. Design with Notion blocks and Themes
-
-Establish the content structure before applying visual treatments. Use headings to organize topics, paragraphs for explanations and images to support the content. Apply Themes to adjust the presentation of those existing blocks.
-
-**Notion blocks** arrange the content, **CMS Types and properties** control website composition, and **Themes** modify rendering. A theme affects a compatible block or component; it does not create the required content block.
-
-Select Themes on the row that owns the affected content. Change one presentation role at a time and compare the generated result. Competing alignment, colour or size selections can override one another. Local Notion supplies the base rendering for Pages, Sections, Headers and NavBars, so an empty Themes selection is valid.
-
-Notion option colours are editor labels, not website colour values. Select the named colour-role Themes to control the rendered palette.
-
-**5.1 Set Section spacing**
-
-Use top and bottom padding to separate Sections visually. The `section_padding_top_…` and `section_padding_bottom_…` Themes affect the Section container; they do not set the spacing between every paragraph.
-
-For reduced padding, select `section_padding_top_xxs` and `section_padding_bottom_xxs`. Section 10 lists the exact available values. The inspected default has more padding, and the `lg` choices increase it. Check spacing across consecutive Sections.
-
-The `shape_…` Themes add decorative edges to Sections. After the page loads, the CMS script sets each shape’s fill to the effective background colour of the next visible Section. Use contrasting neighbouring backgrounds to make the shape visible, and keep content clear of the edge. These separators do not replace headings or content structure.
-
-![Contrasting neighbouring Section backgrounds make the separator shapes visible.](assets/separators-comparison.png)
-
-**5.2 Set text hierarchy and palette**
-
-Use native Heading 1, 2 and 3 blocks to define the content hierarchy. Select a level for its structural role, then adjust its visual size if required. For example, `h1_as_h4` reduces the display size of Heading 1 without changing its structural level.
-
-Use `text_left`, `text_center` or `text_right` for compatible body text. Headings use the separate `h1_align_…`, `h2_align_…` and `h3_align_…` choices. Centre alignment can suit a short banner; left alignment generally provides a consistent edge for longer explanations.
-
-`text_small` reduces body text size, while `text_muted` applies a muted colour. Check the readability of essential information. Some older left-alignment and secondary/tertiary text aliases lack local stylesheet rules; section 10 identifies those compatibility gaps.
-
-Colour Themes control separate presentation roles:
-
-| Role | What you are changing |
-| --- | --- |
-| `color_text_…` | The main content text colour. |
-| `color_text_aux_…` | The auxiliary text colour used by compatible heading treatments. |
-| `color_bg_…` | The background of the compatible content container. |
-| `color_aux_…` | An accent, used by compatible badges, check marks and other components. |
-| `color_card_…` | Authored callout-card backgrounds, rather than every Gallery card. |
-
-Use a consistent palette and verify text contrast against the actual background. A size or colour name alone does not establish accessibility for a particular combination.
-
-![The typography comparison separates heading level, visual size, alignment and colour treatments.](assets/typography-comparison.png)
-
-**5.3 Configure images**
-
-![The same source image with size, alignment, framing and shadow treatments.](assets/image-treatments.png)
-
-Insert an Image block and add a descriptive caption. In the inspected CMS template, the caption is displayed below the image and also supplies alternative text. Use a source image with sufficient detail for its rendered size.
-
-Select `image_maxwidth_md`, `image_align_center` and `image_framed` to limit width, centre the image and add a frame. Add `image_shadow` and a strength such as `shadow_sm` when a shadow is required.
-
-Image alignment requires unused width in the container; a full-width image has no room to move. Maximum dimensions limit growth, while minimum dimensions can cause overflow on narrow screens. Some older `image_width_…` and `image_height_…` choices apply maximum rules despite their names. Percentage height requires a suitable container height.
-
-Select `image_zoomable` to enable click-to-enlarge viewing, then test opening and closing the generated viewer. `animate_image_zoom` instead controls the image’s entrance animation.
-
-A Notion page **cover**, a **body Image block** and a listing **feature image** serve different purposes. Select one feature-source Tag to control the preferred image source:
-
-- `@UseFirstImageAsFeature` prefers the first image, then cover and image thumbnail.
-- `@UseCoverAsFeature` prefers the cover, then image thumbnail.
-- `@UseThumbnailAsFeature` uses an image thumbnail/icon. An emoji does not supply an image URL.
-
-Without those flags, the ordinary order is first image, cover and image thumbnail. The selected template decides where that feature image is displayed.
-
-**5.4 Arrange columns and authored cards**
-
-Create native columns in Notion by dragging one block beside another. Group related content and balance its length across columns. A `columns_…` theme modifies an existing column list; it does not convert ordinary paragraphs into columns.
-
-Select `columns_md` for a medium-breakpoint column layout. Breakpoint choices control when columns stack rather than assigning a fixed width. `columns_middle` vertically aligns shorter content within the available height. Preview the resulting reading order at a narrow width.
-
-Use **Callout** blocks with `callout_card` for a manually arranged set of linked cards:
-
-1. Make a two-column row in Notion and add one Callout in each column.
-2. Put the destination URL in each callout's own text, for example `https://www.example.com/about-us`.
-3. Put the visible heading, short description and optional image in child blocks **inside** that callout.
-4. Select `columns_md`, `callout_card` and `color_card_light` on the owning CMS row. Add `callout_shadow` and `shadow_sm` if desired.
-5. Pull and test the outer card's destination as well as any links in its body.
-
-With `callout_card`, the callout’s own text supplies the destination URL; its child blocks supply the visible description. Place ordinary informational callouts in another Section if they require the normal callout rendering.
-
-Place one callout per column per row with the inspected template. Arrange four cards as two separate two-column rows. Stacking two cards in one column can overlap later content because each card receives almost the full column height.
-
-Authored callout cards are blocks within a Page or Section. A **Gallery** generates cards from independent Gallery rows. Use callout cards for a fixed, manually arranged group of links; use Gallery rows for a collection that can grow and provide category filters.
-
-![Authored callout cards use the callout text for the destination and child blocks for the visible body.](assets/cards-comparison-v2.jpg)
-
-**5.5 Style links, badges and lists**
-
-Create a link with a descriptive label and valid destination before applying button styling. `link_button` styles compatible body links as buttons; `button_secondary` or `button_dark` selects an alternative treatment. Combine `button_shadow` with a strength such as `shadow_sm`. NavBar links use separate rendering and do not support every body-link modifier.
-
-`link_arrow` and `link_muted` replace the ordinary link template. Combining these with button modifiers can bypass the expected button treatment. Select a single intended link presentation and verify its rendered result.
-
-Format a short text span as **inline code** in Notion, then select `badge` and an optional `color_aux_…` accent. A separate Code block does not provide the same content. Badge alignment can also realign the containing element; test it on a short standalone line before applying it to a longer block.
-
-`bullet_check` changes ordinary bullet dots into check-circle accents; it does not make an interactive checklist. `quote_no_indent` removes a quote's usual border/indent treatment while retaining the quote content.
-
-Choose a shadow's target before its strength: `image_shadow`, `callout_shadow`, `button_shadow` or a heading-shadow option attaches it; `shadow_sm`, `shadow_md`, `shadow_lg` or `shadow_none` chooses the shared strength. A strength alone does not add a shadow to every block.
-
-## 6. Add headers, navigation and supported behavior
-
-Create shared components as rows in the same CMS database and assign their corresponding Types. Website path fields determine their scope; Notion view placement does not affect selection.
-
-**6.1 Create a Header or slideshow**
-
-Create a Header row at the required root or branch, using the framing status guidance in section 9.3. In the inspected template, each native Notion **Toggle** defines one slide. Place the slide heading, description and action link inside that Toggle.
-
-Add a background Image block inside the Toggle and set its caption to exactly **`{BACKGROUND}`**. The template treats this marker specially. Use an image suitable for cropping and keep essential content away from its edges. Use a body Image block when the entire image must remain visible.
-
-The renderer maps a native Toggle to the default `toggle_closed` template, independently of its expanded or collapsed state in the Notion editor. The alternative `toggle_open` template has a missing include in the inspected installation. Changing the editor state does not select that alternative.
-
-Select `header_tiny`, `header_small`, `header_large` or `header_full` for Header size. These use percentage-based treatments, not universal fixed heights. Check the Header with its actual content and containing layout.
-
-For multiple slides, `header_fade` requests a fade. `header_no_slide_controls` removes the visible controls and indicators. `header_no_pause` changes the pause setting; test hover behavior. `header_particles` adds decoration and needs its script; use only one particle header per route in this implementation.
-
-![A current full-height Header example, shown as a still view of its scale and placement.](assets/header-full-current.jpg)
-
-**6.2 Place menus and inherit shared framing**
-
-A root NavBar and Footer normally pass to descendants that do not have a nearer replacement. A branch-specific row can replace that component for its branch. Framing titles are editor labels; Shared Footer does not create `/shared-footer`.
-
-Headers are local by default. Put `@UseParentHeader` in the **content row's Tags** to request its parent's Header. `@HideHeader` wins when both are present. Likewise, `@HideNavBar`, `@HideFooter` and `@HideInternal` belong on ordinary content that should suppress those components. Framing rows have Tags and Summary cleared during parsing, so placing these flags on the Footer itself does not achieve that result.
-
-For a short NavBar, use linked paragraphs with clear labels. A native Toggle with linked children can supply a dropdown in the inspected NavBar template. The page icon/thumbnail can supply branding where supported.
-
-Choose one navigation position. `navbar_fixed_top` and `navbar_fixed_bottom` fix it to a viewport edge. `navbar_sticky_top` and `navbar_sticky_bottom` request sticky placement, which also depends on the scroll container. Check that a fixed menu does not cover titles, breadcrumb trails, anchor targets or the footer.
-
-`navbar_callout_productlink` is a richer NavBar entry: its callout text is the URL, the icon supplies the image area and the child blocks supply visible content. It is distinct from an ordinary body callout.
-
-**6.3 Configure entrance animation**
-
-Apply motion after the static layout is complete. Each `animate_…` choice requires a matching element, such as a heading, column list or image. Per-column effects in the inspected themes cover only columns one to four.
-
-Typed headings require the typing script and a vertical bar between phrases. The older `h1_typed` template has a missing include, while typed Heading 2 and 3 omit the ordinary shadow hook. Verify these version-specific combinations before using them.
-
-Verify animation in the rendered page. Test entrance effects while scrolling, carousel controls and readability when scripts are unavailable or an effect does not trigger. A still desktop screenshot does not establish animation or mobile behavior.
-
-## 7. From the local repository to a hosted website
-
-Use the publication cycle **save in Notion → pull → inspect → transfer → activate → verify**. Complete and verify a manual cycle before configuring automation.
-
-**7.1 Create or connect the database**
-
-The CMS uses a specific property structure. Keep the exact names and types shown in section 9. You can hide columns in a Notion view; do not rename or remove the underlying properties to tidy the display.
-
-The **create-cms** command, available from Local Notion **1.7.0**, creates a blank database with twenty properties, eight Type choices, four Status choices, twelve Tags and 228 Themes. Earlier releases, including `v1.6.3` (`1.6.3.7`), do not include it. Run `localnotion create-cms --help` to confirm that the selected executable includes it.
-
-For a version that provides `create-cms`, share an ordinary Notion parent page with the integration. Grant read, insert-content and update-content capabilities, then create the CMS beneath that page:
-
-```text
-localnotion create-cms --parent "YOUR_PARENT_PAGE_UUID" --title "Website CMS"
-```
-
-The command needs an integration key through one of its supported sources. For this command, a protected file named by `NOTION_API_KEY_FILE` is supported; an explicit `--key` and the stored key of an optional existing `--path` are other sources. Keep real keys out of this guide, screenshots and shared shell history.
-
-The command creates an empty CMS rather than copying an existing website. Preset registration uses a temporary setup row, which is moved to Notion Trash; the command then verifies that no active content rows remain. Leave that setup row in Trash. If a request times out, inspect the parent page and any reported recovery identifiers before repeating it, because another invocation creates another database.
-
-If the installed version lacks `create-cms`, use a correctly prepared CMS or create the required properties manually in Notion. Adding a Select choice does not implement unsupported behavior. Initialize Local Notion with the database ID; Notion’s separate data-source ID is not interchangeable with it.
-
-**7.2 Understand the repository files**
-
-In the versions covered here, the repository's settings and resource index live in **`.localnotion/registry.json`**. Use that actual filename; a separate file called `repository.json` is not the settings contract described here.
-
-| Area | What it is for |
-| --- | --- |
-| `.localnotion/registry.json` | CMS connection, path/profile settings, Git/Nginx settings and the resource index. It can contain a Notion key. |
-| `.localnotion/objects/` | Stored Notion objects. |
-| `.localnotion/graphs/` | Downloaded object relationships. |
-| `.localnotion/themes/` | Theme files and intended local overrides. |
-| `.localnotion/nginx/conf/` | Optional generated hosting configuration, including URL mappings. |
-| `cms/` | Generated CMS HTML and sitemap. |
-| `pages/` and other configured render folders | Rendered individual resources according to the selected profile. |
-| `files/` | Downloaded attachments. |
-
-Profiles and path overrides can change the output locations. Public website URLs do not necessarily match generated HTML filenames. Use the hosting route mappings rather than constructing links from underscored filenames.
-
-The following sanitized excerpt identifies selected registry settings. It is not a complete registry file:
-
-```json
-{
-  "cms_database": "YOUR_DATABASE_UUID",
-  "default_themes": ["default"],
-  "paths": {
-    "mode": "online",
-    "base_url": "https://www.example.com",
-    "cms_path": "cms",
-    "files_path": "files",
-    "themes_path": ".localnotion/themes"
-  },
-  "git": { "enabled": false, "push": false },
-  "nginx": { "enabled": false }
-}
-```
-
-`cms_database` chooses the CMS connection. `default_themes` provides the base rendering choices. `paths` determines link mode, base URL and output locations. `git.enabled` enables automatic change tracking/commits; `git.push` additionally enables automatic pushes in the configured workflow. `nginx.enabled` requests Nginx generation; a configured `reload_cmd` is a host-specific action, not a universal server setup.
-
-Do not replace the full registry with this excerpt or hand-edit its generated resource/index entries. Back up the real file before an intentional configuration change, preserve independent settings and run one writer at a time.
-
-**7.3 Pull changes or rebuild stored content**
-
-Confirm that Notion has saved the edited row, then pull the configured CMS:
-
-```sh
-localnotion pull --all --path "./website-repository"
-```
-
-To regenerate content already downloaded, use:
-
-```sh
 localnotion render --all --path "./website-repository"
 ```
 
-Render uses downloaded content and does not fetch new Notion edits. Use it after theme changes or to recompose shared dependencies. A changed parent title can require a full render to update descendant breadcrumbs. A stale native child graph requires a fresh fetch of its owning subtree; rendering the old cache does not update it.
+**Pull** downloads Notion source and normally renders it. **Render** rebuilds downloaded content without fetching new Notion edits. Use render for an installed theme change; fetch the actual owner when its native child list is stale. Rendering an old graph cannot discover a newly added child Page.
 
-Consult the installed help for resource selection, force-download and render options. Source and installed releases can differ. The inspected source declares `--override-mode` for init without applying it, so the option’s presence in older help does not establish its effect. Select the appropriate profile and verify the resulting settings.
+A renamed parent can affect descendant breadcrumbs and a shared component can affect many routes. Rebuild the affected dependencies, then inspect the generated result. Do not delete source content or add a duplicate link merely because one browser still shows an older result.
 
-Configure continuous `sync` only after one-off pulls work as required and their publication effects are understood. Define how the process will be stopped, and avoid concurrent writers to the same repository.
+### Keep Preview and Publication Separate
 
-**7.4 Decide when Git should publish**
+Use an isolated repository or copy for local experiments. Disable automatic commit/push through the supported configuration command when available:
 
-An existing repository may already have automatic Git commit and push enabled. In that case, a pull or render can publish. Inspect the enabled settings, remote and branch before using a live repository for an experiment.
-
-Local Notion **1.7.0 and later** provides `localnotion git --path "./website"` to display the two supported settings, and `localnotion git --path "./website" --enabled false --push false` to disable them for later operations. It changes configuration without running Git or publishing. Earlier releases, including `v1.6.3` (`1.6.3.7`), do not include this command; check `localnotion git --help`. See [Git configuration](../git.md) for the complete command contract and setup.
-
-Use a separate repository or isolated copy for a local-only preview. Disable automatic Git and push, remove any production remote, and preserve the active website’s configuration. Git is optional; another deployment process may transfer the generated files.
-
-If your host uses Git, prepare the private remote, branch, Git identity and receiver before enabling automatic push. Confirm what a successful push does on the receiver. A deployment that updates a checkout still needs the web server to serve that checkout and use its current configuration.
-
-Transfer the complete required result: HTML, assets, media and route mappings. Copying just the visible page file can leave links, pictures or access rules inconsistent.
-
-**7.5 Generate and activate Nginx hosting**
-
-For a new empty website folder that will use Nginx, select the domain and enable hosting generation during initialization:
-
-```text
-localnotion init --cms "YOUR_DATABASE_UUID" --profile website --path "./website-repository" --nginx --override-base-url "https://www.example.com" --key "YOUR_INTEGRATION_KEY"
+```sh
+localnotion git --path "./website-repository"
+localnotion git --path "./website-repository" --enabled false --push false
 ```
 
-The key above is a placeholder. Use the private credential workflow illustrated earlier for real use. This is an alternative initial setup for an empty folder, not a command to reinitialize a working repository.
+If the executable lacks that command, follow its documented configuration workflow. Preserve unrelated settings. Do not replace the complete registry with a small example or hand-edit generated resource registrations as routine authoring.
 
-Nginx generation creates configuration under `.localnotion/nginx/conf`. Its `ln-urls.conf` maps website routes to generated files. The host must include the right mappings and serve the correct repository root. The creation/init commands do not provision DNS, TLS, a droplet, a reverse proxy or a reload service.
+The website profile generates hosted paths. Opening one HTML file directly does not fully test routes or assets; preview through an appropriate local web host or staging site. Run one writer at a time against a repository.
 
-A host may reload Nginx, restart a per-site container or use another approved activation step. Check the actual watched path and intended site. Validate configuration before activation. With individually mounted Docker configuration files, an atomic host-file replacement can leave the container seeing an older file binding; compare what the host and running container actually read when diagnosing a stale route.
+### Transfer and Activate the Complete Result
 
-`--apache` is declared as a hosting flag in the inspected CLI, but that declaration alone does not establish a working Apache generator. This guide's demonstrated hosting workflow is Nginx; verify another host's actual support rather than assuming the presence of a flag is enough.
+Git is one possible transfer mechanism; another deployment process can copy the generated files. Inspect the destination and publication effects before enabling automatic push. Transfer HTML, themes, media and the route mappings together.
 
-After activation, verify the public HTTPS route, updated content, images, navigation, footer, Gallery links and affected shared pages. Local rendering, Git transfer and successful serving are separate verification stages.
+For a new Nginx setup, initialization can enable hosting generation and the intended base URL. This does not provision DNS, TLS, a server or a reload service. See the existing **Hosting** companion Page for the full setup procedure.
 
-**7.6 Publication, privacy and access are different**
+Validate the generated configuration and activate it through the host's intended process. A successful local render, transfer, active server configuration and served website are separate checkpoints. A zero command exit alone does not prove all of them succeeded; read its warnings and errors.
 
-Status and Publish On control ordinary content inclusion during generation. `@Private` excludes sitemap entries. Neither is a complete access-control system.
+<!-- figure-row: architecture-diagram -->
+Follow the complete path from Notion source to downloaded content, generated output and the hosted website. Check each boundary separately when the public result is stale.
 
-Authentication is a secret-bearing Text field used by the applicable hosting integration. The inspected Nginx workflow uses a `username:password` value for HTTP Basic credentials. Each independently authored CMS Page needs its intended access setting; a protected parent URL does not automatically protect every independently authored descendant. Native child pages inherit their owning CMS row's setting.
+Rendering changes local output. Transfer and host activation make that output available to visitors; neither is implied by a saved Notion edit.
 
-Only the active host can enforce generated access rules. Check direct URLs and alternate file paths when protection matters. Block public access to `.localnotion/` and source-control metadata; public page routes do not make the whole checkout suitable for public browsing. Keep the repository and its history private: stored objects, the registry and generated mappings can contain integration keys or reversible authorization values. Never copy real credentials into public examples or screenshots.
+![The CMS workflow separates authoring, generation, transfer and serving.](assets/guide-architecture-diagram.png)
+<!-- /figure-row -->
 
-## 8. Check the result and solve common problems
+### Check Publication and Access Separately
 
-Verify that the page is reachable, its content is complete and its navigation works. When the hosted result differs from Notion, identify the first failing stage: source, download, rendering, transfer or active hosting.
+Published and Publish On control ordinary content inclusion. `@Private` excludes sitemap entries; it does not prevent direct access. Authentication is a host-enforced access setting, not a visual hiding choice.
 
-| What you see | First things to check |
+Native child Pages inherit their CMS owner's authentication context. Independently authored Pages need their intended setting; a protected parent URL is not enough by itself.
+
+> [!WARNING]
+> Test access anonymously at both friendly routes and applicable direct HTML or attachment URLs. Confirm that the host enforces the intended protection on those aliases; a protected parent or a `@Private` sitemap flag does not establish that. Keep `.localnotion` and source-control metadata inaccessible publicly.
+
+Keep credential-bearing repository data and history private.
+
+## 10. Verify and Maintain the Website
+
+### Follow the Complete Editing Cycle
+
+Check the saved Notion row and body, downloaded source, generated Page, transferred files and actual public route in that order. This identifies the first stale or failing stage without guessing that every discrepancy is a browser-cache issue.
+
+| Check | What to Verify |
 | --- | --- |
-| A saved edit is absent on the website | Reopen Notion to confirm save; verify the right CMS/repository; pull the relevant source; inspect generated output; then confirm transfer and active hosting. |
-| A Section stays empty | Check its `empty` theme and whether you edited the visible Section. Empty intentionally suppresses content. |
-| A Page fails with an “exactly one part” error | Look for Published framing at the same exact route on the older renderer. Use the Hidden framing compatibility recipe and regenerate. |
-| A theme appears to do nothing | Check the owner Type, required block, installed definition, available space/contrast and competing overlays. A shadow strength needs a target; image alignment needs spare width. |
-| A card opens a repeated or wrong path | Inspect the actual destination. The older deep Gallery template needed a root-relative link override; do not distort otherwise correct CMS routes to compensate. |
-| A large guide's breadcrumb fails | Check native widget depth support. Use a short explicit trail for the affected deep entry. |
-| A breadcrumb still uses an old parent title | Freshly render the affected descendants from current stored content; fetch the owning subtree first if its source snapshot is stale. |
-| Images or styles work locally but not publicly | Check transferred assets, base URL, hosting mappings and actual server paths. |
-| Four authored cards overlap later content | Use two separate two-column rows with one callout per column, rather than two callouts stacked in each column. |
-| A contact-looking action does not submit anything | Confirm its destination/backend. A theme or `@ContactForm` choice does not create that service. |
+| Structure | Correct Page/Section composition, ordered child links, title and breadcrumb. |
+| Content | Complete copy, literal technical names, lists, badges and code examples. |
+| Layout | Desktop and narrow reading order, intrinsic image proportions, separators, forms and Footer spacing. |
+| Interaction | Actual destinations, keyboard focus, hover, zoom/Escape, carousel controls and motion. |
+| Metadata | Useful title, description and keywords; no broken technical-name fragments or unwanted URL destinations. |
+| Publication | Correct public URLs, current assets, intended access rules and retired routes. |
 
-Inspect the rendered page at wide and narrow browser widths, and test on a phone when available. Test menu toggles, dropdowns, card destinations, Gallery filters, anchor navigation and image enlargement. Include long titles, long summaries and a category containing one card. Essential content must remain readable without animation.
+Write a deliberate Summary on independently authored CMS rows. Where metadata is derived automatically, preview it: names such as .NET, ASP.NET and Node.js must remain intact. Newer source can correct extraction behavior before an installed binary is updated, so verify the artifact actually doing the pull.
 
-The screenshots illustrate specific captured examples. They do not establish support for every preset, combination, device layout or interaction. Use the stated theme requirements and verify the actual generated result.
+### Solve the Smallest Proven Problem
 
-**8.1 Advanced customization**
+| Symptom | First Checks |
+| --- | --- |
+| A saved row is absent | Type, Status, Publish On, route, selected `empty` Theme and completed pull/render. |
+| A view contains unrelated Sections | Exact Type and base-address filters; separate detail routes into another view. |
+| A child link has the wrong name or destination | Real child Page title, containment, fetched owner graph and calculated route. |
+| A Theme has no apparent effect | Correct owner, required native block, installed definition, overlay order and available space. |
+| An image is stretched or overflows | Width/minimum/maximum rules, automatic height, source proportions and narrow layout. |
+| A separator has a seam or overlaps copy | Adjacent backgrounds, actual top/bottom geometry and reserved content clearance. |
+| A badge unexpectedly navigates | Actual source link annotation and the active link template; keep labels static unless intentionally linked. |
+| The public Page differs from Notion | Locate the first difference between source, cache, generation, transfer and active hosting. |
+| A retired Page still opens | Source retirement, cached registration, generated outputs, sitemap and hosting aliases. |
+| A publication command reports an error | Preserve the actual outcome and inspect repository/host state before repeating a write. |
 
-Use Notion for editorial content and intended theme overrides for reusable styling changes. Do not patch generated HTML as a lasting fix.
+### Preserve Useful Structure During Changes
 
-An **Internal** row can supply named template tokens. A Code block's caption is the token name and its raw code is the value. Common tokens include `html_head_start`, `html_head_end`, `html_body_start` and `html_body_end`; the selected template must consume the token. Keep exact spelling and one deliberate value per token. A nearer Internal row replaces the inherited source rather than automatically merging every ancestor's tokens.
+Reuse native Page and block identities when correcting content. Keep intentional links, child order, breadcrumbs and shared components. A working visual change should not silently remove an icon, replace a child Page with an unrelated URL or reset independent configuration.
 
-For reviewed raw body markup, current source explicitly recognizes a Code block whose language is HTML and whose exact trimmed caption is `{INJECT}`. Check the actual renderer before relying on this on an older site. `code_inject` and `code_all` have different jobs, detailed in section 10; neither is an ordinary documentation-formatting option.
+Use the appendices as a lookup after the first site works. Start with supported native blocks and a small compatible theme combination, then refine one concern at a time and verify the result that visitors actually receive.
 
-Local theme files can override built-in templates and assets. Existing overrides, including empty files, can mask newer defaults. Missing built-ins may be restored when a repository opens. Review the installed version and intended override lifecycle before deleting files or upgrading a live site.
-
-## 9. CMS table and behavior reference
+## Appendix A. CMS Schema, Types and Tags
 
 This section lists the required CMS structure and supported behavior. Routine editing can use filtered views with only the relevant columns visible.
 
-**9.1 Choose the right kind of content**
+### A.1 Choose the Right Kind of Content
 
 Select **Type** according to the component the row must produce.
 
@@ -492,12 +465,12 @@ Select **Type** according to the component the row must produce.
 
 A Gallery contains **cards**. Their subject might be products, photographs, articles or team members. A card's subject does not change how the Gallery component works.
 
-**9.2 The complete table structure**
+### A.2 The Complete Table Structure
 
 | Property | Notion property type | How to use it |
 | --- | --- | --- |
 | **Item** | Title | Name the page, section, card or shared component. It normally supplies the last part of a Page's address. |
-| **Type** | Select | Choose the row's job from section 9.1. Choose it explicitly instead of relying on the blank default. |
+| **Type** | Select | Choose the row's job from Appendix A.1. Choose it explicitly instead of relying on the blank default. |
 | **Status** | Select | Use Draft while writing, QA while reviewing and Published for ready ordinary content. Hidden excludes ordinary content. |
 | **Publish On** | Date | Optional earliest publication time, evaluated against UTC when the website is generated. |
 | **Themes** | Multi-select | Choose supported appearance treatments for this row's content or component. Empty is a useful starting point. |
@@ -511,7 +484,7 @@ A Gallery contains **cards**. Their subject might be products, photographs, arti
 | **Category5** | Text | The final available category field. Prefer a shallow, understandable website structure. |
 | **Tags** | Multi-select | Enable supported behavior, such as choosing a feature image or hiding a header. They are different from Themes. |
 | **Summary** | Text | Write the short introduction used by listings and metadata. Help a reader decide whether to open the page. |
-| **Authentication** | Text | Optional host-related access credentials. Leave blank for public content; see section 7 before using it. |
+| **Authentication** | Text | Optional host-related access credentials. Leave blank for public content; see Chapter 9 before using it. |
 | **Created By** | Created by | Notion fills this system property automatically. |
 | **Created On** | Created time | Notion fills this automatically. |
 | **Edited By** | Last edited by | Notion fills this automatically. |
@@ -519,7 +492,7 @@ A Gallery contains **cards**. Their subject might be products, photographs, arti
 
 Status must be a **Select**, not Notion's separate Status property type. Themes and Tags are **Multi-select**. The created/edited fields are native system properties, not ordinary text fields with matching names. The canonical CMS does not require relations, formulas, rollups, or Parent/Menu/Header/Footer columns.
 
-**9.3 Publication and shared framing**
+### A.3 Publication and Shared Framing
 
 For ordinary Page, Section and Gallery content, choose **Published** and leave Publish On empty or set it to a time that is already due. Draft, QA, Hidden, blank or unrecognized statuses do not publish ordinary content.
 
@@ -529,7 +502,7 @@ Header, NavBar, Footer and Internal are selected as shared framing independently
 
 **For the older 1.5.0.12 website renderer, set pure Header, NavBar and Footer rows to Hidden.** Published framing at the exact address of an ordinary Published Page can be mistaken for an extra body part. Hidden avoids that unwanted contribution while the selected framing still works. Keep the actual Page Published, then check the complete generated route, particularly when upgrading.
 
-**9.4 Use Tags for behavior**
+### A.4 Use Tags for Behavior
 
 These are the twelve canonical Tags. Put them on ordinary content, and select exact names rather than inventing a similar one.
 
@@ -550,24 +523,24 @@ These are the twelve canonical Tags. Put them on ordinary content, and select ex
 
 Choose one feature-source Tag; if several are present, the current preference is first-image, then cover, then thumbnail. Additional custom tags are metadata unless a theme or program explicitly consumes them. Some site-specific palettes contain other names; that does not make them canonical or universally implemented.
 
-## 10. Complete Theme lookup
+## Appendix B. Stock Theme Reference
 
-The following tables list all **228 canonical Theme choices**, their intended effects, required content and known limits. Bold Type names identify the recommended owning row. Select exact names in that row’s Themes property. Compatible inherited templates can also affect a Gallery detail page; verify that output before using a modifier more broadly.
+The lookup describes stock modifiers, not a requirement to select every option or a catalogue of separately installed design packages. A preset name in Notion does not implement a missing template. Follow the selected package's compatible modifier list and overlay order.
 
-Descriptions are grounded in inspected templates and styles. They describe intended mechanisms, not a claim that every option or combination has passed a visual test. The staging examples were produced with an older 1.5.0.12 website renderer and local overrides; newer source and other installations can differ. Compatibility notes identify known gaps rather than silently substituting a similarly named option.
+The following tables list the **228 stock Theme preset names**, their intended effects, required content and known limits. Bold Type names identify the recommended owning row. Select exact names in that row’s Themes property. Compatible inherited templates can also affect a Gallery detail page; verify that output before using a modifier more broadly.
+
+Descriptions are grounded in inspected templates and styles. They describe intended mechanisms, not a claim that every option or combination has passed a visual test. Some compatibility notes describe the legacy 1.5.0.12 website renderer and its theme definitions. An installed package can override those definitions, and source changes can precede a released binary. Check the actual executable and theme package rather than treating every historical limitation as universal. Compatibility notes identify known gaps rather than silently substituting a similarly named option.
 
 Choose one deliberate value for a competing role. Keep the relevant Notion block in place, preview its complete route, and test interactions separately from still images. The editor colour of an option is just a Notion label.
 
-### 10.1 Content visibility
-
+### B.1 Content Visibility
 Choose whether a row contributes visible content. This is a composition decision, not a substitute for publication settings.
 
 | Theme | Intended result and required content |
 | --- | --- |
 | `empty` | **Page or Section.** Suppresses the row's visible output. Useful for deliberate metadata-only content; a successful save/pull can still display nothing. |
 
-### 10.2 Body text
-
+### B.2 Body Text
 These choices affect compatible paragraphs, quotes and callouts on a Page or Section. Heading and image alignment have their own controls. Choose one alignment and one main text-colour treatment rather than competing values.
 
 | Theme | Intended result and required content |
@@ -579,8 +552,7 @@ These choices affect compatible paragraphs, quotes and callouts on a Page or Sec
 | `text_muted` | **Page or Section.** Gives compatible body text a muted colour; competes with other main-text colour choices. Check readability on the chosen background. |
 | `text_small` | **Page or Section.** Makes compatible body blocks smaller. Use for brief supporting notes, with a readable phone preview. |
 
-### 10.3 Headings
-
+### B.3 Headings
 Create real Heading 1, 2 or 3 blocks in a Page, Section or compatible Header, then choose their presentation. Visual size does not change a heading's structural level. The all-heading choices affect all three levels; level-specific choices affect only that level.
 
 | Theme | Intended result and required content |
@@ -593,29 +565,28 @@ Create real Heading 1, 2 or 3 blocks in a Page, Section or compatible Header, th
 | `h2_shadow` | **Page, Section or Header.** Adds the shared text shadow to Heading 2. Optionally choose a shared shadow strength. |
 | `h1_shadow` | **Page, Section or Header.** Adds the shared text shadow to Heading 1. Optionally choose a shared shadow strength. |
 | `h123_shadow` | **Page, Section or Header.** Adds the shared text shadow to Heading 1, 2 and 3. Optionally choose a shared shadow strength. |
-| `h1_align_left` | **Page, Section or Header.** Aligns Heading 1 left. Compatibility gap: its left-align rule is absent locally; ordinary left appearance is not proof of a working reset. |
+| `h1_align_left` | **Page, Section or Header.** Aligns Heading 1 left. Compatibility gap: its left-align rule is absent from the inspected legacy definition; ordinary left appearance is not proof of a working reset. |
 | `h1_align_center` | **Page, Section or Header.** Aligns Heading 1 center. Body text and images have separate alignment controls. |
 | `h1_align_right` | **Page, Section or Header.** Aligns Heading 1 right. Body text and images have separate alignment controls. |
 | `h1_color_aux` | **Page, Section or Header.** Switches Heading 1 to the auxiliary text colour. Pair with an auxiliary-text colour choice. |
 | `h1_as_h4` | **Page, Section or Header.** Gives Heading 1 a smaller visual size, like Heading 4; its original structural level remains unchanged. |
 | `h1_typed` | **Page, Section or Header.** Types/rotates Heading 1 text; a vertical bar separates phrases. Needs the typing script and a live check. The inspected Heading 1 template has an unresolved shadow reference. |
-| `h2_align_left` | **Page, Section or Header.** Aligns Heading 2 left. Compatibility gap: its left-align rule is absent locally; ordinary left appearance is not proof of a working reset. |
+| `h2_align_left` | **Page, Section or Header.** Aligns Heading 2 left. Compatibility gap: its left-align rule is absent from the inspected legacy definition; ordinary left appearance is not proof of a working reset. |
 | `h2_align_center` | **Page, Section or Header.** Aligns Heading 2 center. Body text and images have separate alignment controls. |
 | `h2_align_right` | **Page, Section or Header.** Aligns Heading 2 right. Body text and images have separate alignment controls. |
 | `h2_color_aux` | **Page, Section or Header.** Switches Heading 2 to the auxiliary text colour. Pair with an auxiliary-text colour choice. |
 | `h2_typed` | **Page, Section or Header.** Types/rotates Heading 2 text; a vertical bar separates phrases. Needs the typing script and a live check. The typed template omits the ordinary heading-shadow hook. |
 | `h2_as_h5` | **Page, Section or Header.** Gives Heading 2 a smaller visual size, like Heading 5; its original structural level remains unchanged. |
-| `h3_align_left` | **Page, Section or Header.** Aligns Heading 3 left. Compatibility gap: its left-align rule is absent locally; ordinary left appearance is not proof of a working reset. |
+| `h3_align_left` | **Page, Section or Header.** Aligns Heading 3 left. Compatibility gap: its left-align rule is absent from the inspected legacy definition; ordinary left appearance is not proof of a working reset. |
 | `h3_align_center` | **Page, Section or Header.** Aligns Heading 3 center. Body text and images have separate alignment controls. |
 | `h3_align_right` | **Page, Section or Header.** Aligns Heading 3 right. Body text and images have separate alignment controls. |
 | `h3_color_aux` | **Page, Section or Header.** Switches Heading 3 to the auxiliary text colour. Pair with an auxiliary-text colour choice. |
 | `h3_typed` | **Page, Section or Header.** Types/rotates Heading 3 text; a vertical bar separates phrases. Needs the typing script and a live check. The typed template omits the ordinary heading-shadow hook. |
 | `h3_as_h6` | **Page, Section or Header.** Gives Heading 3 a smaller visual size, like Heading 6; its original structural level remains unchanged. |
 
-**Heading checks:** typed effects replace the whole heading template and need live verification. The Heading 1 typed template has a missing shared-shadow reference; typed Heading 2/3 omit normal shadow hooks. The left-alignment choices request a legacy rule absent from the inspected stylesheet. The ordinary default's left appearance does not prove those choices can reset another alignment.
+**Heading Checks:** typed effects replace the whole heading template and need live verification. In the inspected legacy definitions, the Heading 1 typed template had a missing shared-shadow reference, while typed Heading 2/3 omitted normal shadow hooks. The left-alignment choices also requested a rule absent from that stylesheet. These are compatibility observations: check the installed package before assuming the same limits. An ordinary default's left appearance does not prove that a modifier can reset another alignment.
 
-### 10.4 Section spacing
-
+### B.4 Section Spacing
 Apply these to Section rows, not ordinary Pages. Top and bottom can be chosen independently. The inspected stylesheet's default is 3rem per edge; the small choice is 0.5rem and the large choice is 6rem. Content-block margins can remain after section padding is removed.
 
 | Theme | Intended result and required content |
@@ -627,8 +598,7 @@ Apply these to Section rows, not ordinary Pages. Top and bottom can be chosen in
 | `section_padding_top_none` | **Section.** Sets the Section's top padding to zero. Does not remove margins inside content blocks. |
 | `section_padding_bottom_none` | **Section.** Sets the Section's bottom padding to zero. Does not remove margins inside content blocks. |
 
-### 10.5 Section separators
-
+### B.5 Section Separators
 A separator decorates the bottom edge of a Section or Header. Its SVG starts with a white or inherited fill; after page load, the CMS script matches it to the next visible Section’s effective background colour. Preview the complete boundary: image or gradient backgrounds, missing scripts and Section padding can affect the result. A Notion divider is instead a rule inside content.
 
 | Theme | Intended result and required content |
@@ -638,23 +608,21 @@ A separator decorates the bottom edge of a Section or Header. Its SVG starts wit
 | `shape_ascend_right` | **Section or Header.** Adds an ascending bottom edge to a Section/Header. The CMS script matches its fill to the next visible Section’s effective background colour; choose one shape per row and preview the boundary. |
 | `shape_curve_down` | **Section or Header.** Adds a downward-curved bottom edge to a Section/Header. The CMS script matches its fill to the next visible Section’s effective background colour; choose one shape per row and preview the boundary. |
 
-### 10.6 Columns
-
+### B.6 Columns
 Make a Notion column list before selecting these choices on its Page or Section. Breakpoints control when columns sit side by side and stack, rather than specifying a fixed column width. Choose one breakpoint. Test the real phone layout rather than inferring it from a theme name.
 
 | Theme | Intended result and required content |
 | --- | --- |
 | `columns_middle` | **Page or Section.** Vertically centres compatible column content. Needs a Notion column list with unequal content heights to make the difference visible. |
-| `columns_xs` | **Page or Section.** Chooses the extra-small breakpoint for an existing Notion column list. Compatibility gap: the emitted column rule is absent from the inspected stylesheet. |
+| `columns_xs` | **Page or Section.** Chooses the extra-small breakpoint for an existing Notion column list. Legacy compatibility note: the emitted column rule was absent from the inspected stylesheet; check the installed theme. |
 | `columns_sm` | **Page or Section.** Chooses the small breakpoint for an existing Notion column list. Columns stack below the chosen breakpoint; test the narrow-screen reading order. |
 | `columns_md` | **Page or Section.** Chooses the medium breakpoint for an existing Notion column list. Columns stack below the chosen breakpoint; test the narrow-screen reading order. |
 | `columns_lg` | **Page or Section.** Chooses the large breakpoint for an existing Notion column list. Columns stack below the chosen breakpoint; test the narrow-screen reading order. |
 | `columns_xl` | **Page or Section.** Chooses the extra-large breakpoint for an existing Notion column list. Columns stack below the chosen breakpoint; test the narrow-screen reading order. |
 | `columns_xxl` | **Page or Section.** Chooses the largest breakpoint for an existing Notion column list. Columns stack below the chosen breakpoint; test the narrow-screen reading order. |
 
-### 10.7 Images
-
-Add a real Image block first. The inspected renderer contains the picture responsively. Alignment needs an image narrower than its container; captions stay centred. Size rules below describe the actual installed definition, including maximums hidden behind some shorter option names. The named scale is 5/10/15/25/35/45/60rem from smallest to largest; a rem follows the site's root text size.
+### B.7 Images
+Add a real Image block first. The inspected renderer contains the picture responsively. Alignment needs an image narrower than its container; captions stay centred. Size rules below describe the stock definition described here, including maximums hidden behind some shorter option names. The named scale is 5/10/15/25/35/45/60rem from smallest to largest; a rem follows the site's root text size.
 
 | Theme | Intended result and required content |
 | --- | --- |
@@ -717,8 +685,7 @@ Add a real Image block first. The inspected renderer contains the picture respon
 
 **Image checks:** percentage height requires a defined containing height; minimums can overflow phones; a maximum larger than the source can look unchanged. The actual output also depends on the column/container and source aspect ratio. Compare both portrait and landscape content before generalizing.
 
-### 10.8 Colour roles
-
+### B.8 Color Roles
 Names such as primary, success and body refer to the installed theme's palette, not fixed universal colours. Main text, container background, auxiliary text, small accents and callout cards have separate controls. Inline Notion colours and component templates can override inherited colour. Inspect contrast on the final page.
 
 | Theme | Intended result and required content |
@@ -727,8 +694,8 @@ Names such as primary, success and body refer to the installed theme's palette, 
 | `color_text_black_50` | **Page or Section.** Chooses black at 50% opacity as the main text colour on compatible Page/Section blocks. |
 | `color_text_body` | **Page or Section.** Chooses body as the main text colour on compatible Page/Section blocks. |
 | `color_text_body_emphasis` | **Page or Section.** Chooses body emphasis as the main text colour on compatible Page/Section blocks. The inspected mapping uses the dark-emphasis treatment. |
-| `color_text_body_secondary` | **Page or Section.** Chooses body secondary as the main text colour on compatible Page/Section blocks. Compatibility gap: the emitted colour rule is absent from the inspected stylesheet; visible effect is unproved. |
-| `color_text_body_tertiary` | **Page or Section.** Chooses body tertiary as the main text colour on compatible Page/Section blocks. Compatibility gap: the emitted colour rule is absent from the inspected stylesheet; visible effect is unproved. |
+| `color_text_body_secondary` | **Page or Section.** Chooses body secondary as the main text colour on compatible Page/Section blocks. Legacy compatibility note: the emitted colour rule was absent from the inspected stylesheet; check the installed theme. |
+| `color_text_body_tertiary` | **Page or Section.** Chooses body tertiary as the main text colour on compatible Page/Section blocks. Legacy compatibility note: the emitted colour rule was absent from the inspected stylesheet; check the installed theme. |
 | `color_text_danger` | **Page or Section.** Chooses danger as the main text colour on compatible Page/Section blocks. |
 | `color_text_danger_emphasis` | **Page or Section.** Chooses danger emphasis as the main text colour on compatible Page/Section blocks. |
 | `color_text_dark` | **Page or Section.** Chooses dark as the main text colour on compatible Page/Section blocks. |
@@ -774,7 +741,7 @@ Names such as primary, success and body refer to the installed theme's palette, 
 | `color_aux_secondary` | **Page or Section.** Chooses secondary for small accents. Needs a badge, arrow-style link or check-style bullet; no ordinary-paragraph effect. |
 | `color_aux_success` | **Page or Section.** Chooses success for small accents. Needs a badge, arrow-style link or check-style bullet; no ordinary-paragraph effect. |
 | `color_aux_warning` | **Page or Section.** Chooses warning for small accents. Needs a badge, arrow-style link or check-style bullet; no ordinary-paragraph effect. |
-| `color_text_aux_50` | **Header, Page or Section.** Unavailable in the inspected installation: no matching theme folder. A similarly named extra option is a different choice; no automatic substitute or implemented effect is established. |
+| `color_text_aux_50` | **Header, Page or Section.** Compatibility note: no matching theme folder was present in the inspected legacy installation. Check the installed package; a similarly named extra option is a different choice, not an automatic substitute. |
 | `color_text_aux_black` | **Header, Page or Section.** Chooses black for auxiliary text. Ordinary headings need their auxiliary-colour switch; does not recolour ordinary paragraphs. |
 | `color_text_aux_body` | **Header, Page or Section.** Chooses body for auxiliary text. Ordinary headings need their auxiliary-colour switch; does not recolour ordinary paragraphs. |
 | `color_text_aux_body_emphasis` | **Header, Page or Section.** Chooses body emphasis for auxiliary text. Ordinary headings need their auxiliary-colour switch; does not recolour ordinary paragraphs. |
@@ -807,23 +774,21 @@ Names such as primary, success and body refer to the installed theme's palette, 
 | `color_card_success` | **Page or Section.** Chooses success text/background treatment for authored callout cards. Needs the callout-card style; not a generated Gallery-card control. |
 | `color_card_warning` | **Page or Section.** Chooses warning text/background treatment for authored callout cards. Needs the callout-card style; not a generated Gallery-card control. |
 
-### 10.9 Badges, callouts, lists and quotes
-
+### B.9 Badges, Callouts, Lists and Quotes
 These choices style particular Notion blocks inside a Page or Section. A clickable callout card needs URL text and visible child blocks. A badge needs inline-code text, not a Code block. The detailed recipes show how to author the underlying content.
 
 | Theme | Intended result and required content |
 | --- | --- |
 | `callout_shadow` | **Page or Section.** Adds the shared shadow to ordinary or card-style Callouts. Optionally choose a shared shadow strength. |
 | `badge` | **Page or Section.** Turns inline-code text into a rounded badge. Needs inline code, not a Code block; an accent colour is optional. Its script can realign the parent block. |
-| `badge_align_left` | **Page or Section.** Requests left alignment for a badge and its parent. Needs badge styling/script. Compatibility gap: the left-align rule is absent locally; test actual parent behavior. |
+| `badge_align_left` | **Page or Section.** Requests left alignment for a badge and its parent. Needs badge styling/script. Compatibility gap: the left-align rule is absent from the inspected legacy definition; test actual parent behavior. |
 | `badge_align_center` | **Page or Section.** Centres a styled badge by changing its parent alignment. Needs badge styling/script; inspect adjacent text too. |
 | `badge_align_right` | **Page or Section.** Right-aligns a styled badge by changing its parent alignment. Needs badge styling/script; inspect adjacent text too. |
 | `callout_card` | **Page or Section.** Turns a Callout into a clickable card: its own text is the destination URL; child blocks supply the visible heading/body. Test the outer-card link. |
 | `bullet_check` | **Page or Section.** Replaces bulleted-list dots with check-circle accents. Needs the icon script; this is presentation, not interactive task state. |
 | `quote_no_indent` | **Page or Section.** Removes the normal Quote border/indent treatment while preserving its quote role. |
 
-### 10.10 Links and buttons
-
+### B.10 Links and Buttons
 Create a labelled rich-text link and a real destination first. A button is a presentation of that link. Arrow and muted-link treatments replace the ordinary link template and can bypass button or underline choices; navigation has its own markup.
 
 | Theme | Intended result and required content |
@@ -839,8 +804,7 @@ Create a labelled rich-text link and a real destination first. A button is a pre
 
 **Download-label checks:** the inspected detector recognizes WINDOWS, WINDOWS STORE, MACOS, APPLE STORE, LINUX and GOOGLE STORE, plus bracketed labels such as [Download]. It needs its Section-end script, supporting libraries and external icons; test other page links because its scan is document-wide.
 
-### 10.11 Shadows
-
+### B.11 Shadows
 First enable the shadow on the intended image, callout, button or heading; then choose one shared strength here. A strength alone does not add shadows everywhere. The inspected Gallery card and badge shadows are independent of this shared setting.
 
 | Theme | Intended result and required content |
@@ -850,9 +814,8 @@ First enable the shadow on the intended image, callout, button or heading; then 
 | `shadow_sm` | **Page or Section.** Chooses small shared shadow strength. Needs a shadow-enabled image, callout, button or heading; fixed Gallery/badge shadows are separate. |
 | `shadow_none` | **Page or Section.** Chooses no shared shadow strength. Needs a shadow-enabled image, callout, button or heading; fixed Gallery/badge shadows are separate. |
 
-### 10.12 Headers and slideshows
-
-Select these on a Header row resolved by the content page. Native Notion Toggles supply slides; their children contain the heading, copy and image. The renderer selects its default slide template regardless of the Toggle's expanded/collapsed state in the editor. An image captioned exactly `{BACKGROUND}` becomes a cover-style slide background. The alternative `toggle_open` template has a missing include in this installation; changing the editor state does not select it. Percentage heights depend on the containing layout.
+### B.12 Headers and Slideshows
+Select these on a Header row resolved by the content page. Native Notion Toggles supply slides; their children contain the heading, copy and image. The renderer selects its default slide template regardless of the Toggle's expanded/collapsed state in the editor. An image captioned exactly `{BACKGROUND}` becomes a cover-style slide background. The alternative `toggle_open` template has a missing include in the inspected legacy installation; changing the editor state does not select it. Percentage heights depend on the containing layout.
 
 | Theme | Intended result and required content |
 | --- | --- |
@@ -865,8 +828,7 @@ Select these on a Header row resolved by the content page. Native Notion Toggles
 | `header_large` | **Header.** Requests a 75% header height treatment; actual height depends on its containing layout. Needs a resolved Header with slides. |
 | `header_full` | **Header.** Requests a 100% header height treatment, not an unconditional screen-height promise. Needs a resolved Header with slides. |
 
-### 10.13 Navigation
-
+### B.13 Navigation
 Use a NavBar row at the intended route or branch. Add linked paragraphs and, when needed, a toggle containing dropdown links. Position changes need a long page and a scroll test; a fixed bar can cover a title or anchor. Use one positioning choice.
 
 | Theme | Intended result and required content |
@@ -877,8 +839,7 @@ Use a NavBar row at the intended route or branch. Add linked paragraphs and, whe
 | `navbar_fixed_bottom` | **NavBar.** Fixes the NavBar at the viewport bottom. Check content/footer clearance and phone usability. |
 | `navbar_sticky_bottom` | **NavBar.** Requests bottom sticky positioning within the scroll context. Needs a suitable layout; do not assume it behaves like a fixed bottom bar. |
 
-### 10.14 Entrance animation
-
+### B.14 Entrance Animation
 Motion choices need matching blocks and the website's animation scripts. Test their entrance from a fresh load/scroll position. A still screenshot cannot prove a transition, timing or reduced-motion behavior. Column hooks in the inspected templates cover only one-to-four-column layouts.
 
 | Theme | Intended result and required content |
@@ -888,8 +849,7 @@ Motion choices need matching blocks and the website's animation scripts. Test th
 | `animate_columns_zoom` | **Page or Section.** Requests zooming entrances for an existing one-to-four-column list. Needs animation scripts and live scroll/entry testing. |
 | `animate_image_zoom` | **Page or Section.** Requests a zoom entrance for Image figures. Needs animation scripts and a live check; this is not click-to-enlarge. |
 
-### 10.15 Advanced content rendering
-
+### B.15 Advanced Content Rendering
 Use these on a Page or Section only for reviewed advanced content, with a version-matched preview. Literal code examples should stay readable. These two presets have different jobs; neither should be selected merely because a page contains documentation.
 
 | Theme | Intended result and required content |

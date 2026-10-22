@@ -9,6 +9,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using CommandLine;
 using Sphere10.Framework;
 using Notion.Client;
@@ -188,22 +189,33 @@ public class LocalNotionHelper {
 	}
 
 	public static string ExtractDefaultPageSummary(NotionObjectGraph pageGraph, IDictionary<string, IObject> pageObjects) {
-		string summary = null;
-		// simply extract first 4 sentences from first text block`
-		var firstParagraph =
+		// Preserve native run adjacency and ignore blank paragraphs before selecting the introduction.
+		var introduction =
 			pageGraph
 				.VisitAll()
 				.Select(x => pageObjects[x.ObjectID])
-				.Where(x => x is ParagraphBlock paragraph && paragraph.GetTextContents().Any(x => !string.IsNullOrWhiteSpace(x)))
-				.Cast<ParagraphBlock>()
-				.FirstOrDefault();
-		if (firstParagraph != null) {
-			summary = Tools.Text.EnumerateSentences(firstParagraph.Paragraph.RichText.ToPlainText()).FirstOrDefault();
-			if (summary != null)
-				summary = summary.Truncate(280);
-		}
+				.OfType<ParagraphBlock>()
+				.Select(x => NormalizeMetadataWhitespace(VisibleRichText(x.Paragraph?.RichText)))
+				.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+		if (introduction == null)
+			return null;
 
-		return summary;
+		// A dot in .NET, ASP.NET, Node.js or a version is not a sentence boundary.
+		var summary = FirstMetadataSentence(introduction);
+		return summary.Length > 280 ? summary.Truncate(279) : summary;
+	}
+
+	public static string[] ExtractDefaultPageKeywords(NotionObjectGraph pageGraph, IDictionary<string, IObject> pageObjects) {
+		// SEO uses authored visible labels; the export text renderer deliberately retains link destinations.
+		var text = pageGraph.VisitAll().Select(x => MetadataBlockText(pageObjects[x.ObjectID]))
+			.Select(NormalizeMetadataWhitespace).Where(x => !string.IsNullOrWhiteSpace(x));
+		return RakeAlgorithm.Run(text, minCharLength: 2).Select(x => x.Key).Take(10).ToArray();
+	}
+
+	public static void PopulateDefaultPageSummary(LocalNotionPage page, NotionObjectGraph pageGraph, IDictionary<string, IObject> pageObjects) {
+		// A saved CMS summary, including the empty framing summary, takes precedence over derivation.
+		if (page.CMSProperties is { Summary: null })
+			page.CMSProperties.Summary = ExtractDefaultPageSummary(pageGraph, pageObjects);
 	}
 
 	public static string SanitizeSlug(string slug) {
@@ -376,6 +388,59 @@ public class LocalNotionHelper {
 		username = parts[0].Trim();
 		password = parts[1].Trim();
 		return true;
+	}
+
+	private static string VisibleRichText(IEnumerable<RichTextBase> runs)
+		=> string.Concat((runs ?? []).Select(x => x switch {
+			RichTextText text => text.Text?.Content ?? text.PlainText ?? string.Empty,
+			RichTextEquation equation => equation.Equation?.Expression ?? equation.PlainText ?? string.Empty,
+			_ => x?.PlainText ?? string.Empty
+		}));
+
+	private static string MetadataBlockText(IObject value)
+		=> value switch {
+			ParagraphBlock block => VisibleRichText(block.Paragraph?.RichText),
+			HeadingOneBlock block => VisibleRichText(block.Heading_1?.RichText),
+			HeadingTwoBlock block => VisibleRichText(block.Heading_2?.RichText),
+			HeadingThreeBlock block => VisibleRichText(block.Heading_3?.RichText),
+			BulletedListItemBlock block => VisibleRichText(block.BulletedListItem?.RichText),
+			NumberedListItemBlock block => VisibleRichText(block.NumberedListItem?.RichText),
+			QuoteBlock block => VisibleRichText(block.Quote?.RichText),
+			CalloutBlock block => VisibleRichText(block.Callout?.RichText),
+			ToDoBlock block => VisibleRichText(block.ToDo?.RichText),
+			ToggleBlock block => VisibleRichText(block.Toggle?.RichText),
+			TemplateBlock block => VisibleRichText(block.Template?.RichText),
+			CodeBlock block when block.Code?.Language == "html" && VisibleRichText(block.Code.Caption).Trim() == "{INJECT}" => string.Empty,
+			CodeBlock block => VisibleRichText(block.Code?.RichText) + " " + VisibleRichText(block.Code?.Caption),
+			TableRowBlock block => string.Join(" ", (block.TableRow?.Cells ?? []).Select(VisibleRichText)),
+			BookmarkBlock block => VisibleRichText(block.Bookmark?.Caption),
+			EmbedBlock block => VisibleRichText(block.Embed?.Caption),
+			ImageBlock block => VisibleRichText(block.Image?.Caption),
+			AudioBlock block => VisibleRichText(block.Audio?.Caption),
+			VideoBlock block => VisibleRichText(block.Video?.Caption),
+			FileBlock block => VisibleRichText(block.File?.Caption),
+			PDFBlock block => VisibleRichText(block.PDF?.Caption),
+			EquationBlock block => block.Equation?.Expression ?? string.Empty,
+			ChildPageBlock block => block.ChildPage?.Title ?? string.Empty,
+			ChildDatabaseBlock block => block.ChildDatabase?.Title ?? string.Empty,
+			_ => string.Empty
+		};
+
+	private static string NormalizeMetadataWhitespace(string text)
+		=> Regex.Replace(text, @"\s+", " ").Trim();
+
+	private static string FirstMetadataSentence(string text) {
+		// Sentence punctuation terminates at whitespace/end, allowing a closing quote or bracket.
+		for (var index = 0; index < text.Length; index++) {
+			if (text[index] is not ('.' or '!' or '?' or ';'))
+				continue;
+			var end = index + 1;
+			while (end < text.Length && "\"'’”)]}".Contains(text[end]))
+				end++;
+			if (end == text.Length || char.IsWhiteSpace(text[end]))
+				return text[..end];
+		}
+		return text;
 	}
 }
 

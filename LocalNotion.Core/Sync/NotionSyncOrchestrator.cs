@@ -14,7 +14,6 @@ using Sphere10.Framework;
 using Sphere10.Framework.Application;
 using LocalNotion.Core.DataObjects;
 using Notion.Client;
-using R = Sphere10.VisualRenderer;
 
 namespace LocalNotion.Core;
 
@@ -341,15 +340,12 @@ public class NotionSyncOrchestrator {
 				// Determine feature image
 				localPage.FeatureImageID = LocalNotionHelper.CalculateFeatureImageID(localPage, notionPage, pageObjects, pageGraph);
 
-				// Parse keywords using a text renderer. Keywords are cosmetic, but this runs inside
+				// Extract keywords from native visible text. Keywords are cosmetic, but this runs inside
 				// the download phase where no fault-tolerance handler applies -- so a rendering
 				// fault here would abort the whole pull instead of costing one page its keywords.
 				localPage.Keywords = [];
 				try {
-					var textRenderer = new Sphere10.VisualRenderer.TextRenderer();
-					R.DocumentBlock textModel = new NotionRenderModelBuilder(Repository, Logger).Build(localPage, pageGraph, pageObjects, null, ProjectionPurpose.Text);
-					var text = textRenderer.Render(textModel);
-					localPage.Keywords = RakeAlgorithm.Run([text], minCharLength: 2).Select(x => x.Key).Take(10).ToArray();
+					localPage.Keywords = LocalNotionHelper.ExtractDefaultPageKeywords(pageGraph, pageObjects);
 				} catch (OperationCanceledException) {
 					throw;
 				} catch (Exception error) {
@@ -386,8 +382,7 @@ public class NotionSyncOrchestrator {
 				}
 
 				// If no summary was provided, generate one
-				if (localPage.CMSProperties is { Summary: null })
-					localPage.CMSProperties.Summary = LocalNotionHelper.ExtractDefaultPageSummary(pageGraph, pageObjects);
+				LocalNotionHelper.PopulateDefaultPageSummary(localPage, pageGraph, pageObjects);
 
 				#endregion
 

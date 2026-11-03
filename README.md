@@ -26,7 +26,7 @@ Workspace restore is listed as **coming soon** on the [Local Notion product page
 
 ## Standalone renderer
 
-LocalNotion uses the independently versioned MIT-licensed Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md).
+LocalNotion uses the independently versioned MIT-licensed Sphere10.VisualRenderer library. Workspace builds use its updated source; package builds require an explicitly selected compatible version. See [rendering integration](docs/renderer.md).
 
 ## Native downloads
 
@@ -92,7 +92,7 @@ The command prints the new database ID and URL. It leaves zero active content ro
 
 LocalNotion has no Enterprise package, license activation, repository quota or
 page quota. It uses the MIT Framework application lifecycle and the independently
-versioned MIT Sphere10.VisualRenderer 3.1.3 package.
+versioned MIT Sphere10.VisualRenderer library.
 
 The default build uses **post-DRM-extraction Framework source** from a sibling
 `../Framework` directory. Set `Sphere10FrameworkRoot` to use another checkout.
@@ -111,7 +111,8 @@ executables or publish a release.
 
 ### Build (CLI)
 
-From the repository root, with the clean Framework checkout available:
+From the repository root, with the clean Framework and updated
+`../Components/Sphere10.VisualRenderer` checkouts available:
 
 ```bash
 dotnet build LocalNotion.sln -c Release -p:BuildNumber=0 -p:BuildRevision=0
@@ -120,7 +121,10 @@ dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Releas
 
 For a different source location, add
 `-p:Sphere10FrameworkRoot=/absolute/path/to/Framework`. Explicit build numbers
-avoid incrementing either checkout's local build counter.
+avoid incrementing the checkouts' local build counters. Set
+`-p:Sphere10VisualRendererRoot=/absolute/path/to/Sphere10.VisualRenderer` for a
+different renderer source location. See [renderer build modes](docs/renderer.md#building)
+to select an explicitly versioned renderer package instead.
 
 Package mode is retained for a **separately produced and verified clean package
 set**, without a source checkout. Set both

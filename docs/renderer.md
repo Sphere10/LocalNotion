@@ -1,8 +1,10 @@
 # Rendering in LocalNotion
 
-LocalNotion consumes the independently versioned Sphere10.VisualRenderer NuGet
-package, currently 3.1.3 under the MIT license. Its implementation is not
-built by this solution.
+LocalNotion consumes the independently versioned, MIT-licensed
+Sphere10.VisualRenderer library. Workspace builds reference its current source
+at `../Components/Sphere10.VisualRenderer`; a compatible NuGet package can be
+selected explicitly as described below. The public 3.1.3 package lacks the
+embedded-page APIs required by the current LocalNotion projection.
 
 LocalNotion.Core/Rendering owns conversion of Notion objects and repository
 metadata into the renderer's visual model. LocalNotion also owns repository
@@ -35,8 +37,36 @@ Do not replace the renderer license with LocalNotion's GPL license.
 
 ## Building
 
-Restore the pinned Sphere10.VisualRenderer 3.1.3 package from public NuGet.
-LocalNotion does not build or publish the renderer. Its version changes
-independently of LocalNotion and of Framework. See the main README's Framework
-source/package instructions: removing Enterprise/DRM does not make legacy
-Framework.Application 3.1.2 a clean substitute.
+The default build uses the updated renderer checkout at
+`../Components/Sphere10.VisualRenderer`. Set `Sphere10VisualRendererRoot` to use
+another location. It is built as a separate project with the same configuration
+as LocalNotion. A missing source checkout produces a configuration error rather
+than falling back to an incompatible package.
+
+```powershell
+dotnet build LocalNotion.sln -c Release -p:BuildNumber=0 -p:BuildRevision=0
+```
+
+For package mode, first produce a distinctly versioned package from the updated
+renderer and make it available through a configured NuGet feed. Set
+`UseSphere10VisualRendererSource=false` and an exact
+`Sphere10VisualRendererVersion` for both restore and build. Supplying a renderer
+version also selects package mode when the source switch
+is omitted, preserving existing development-package commands.
+
+```powershell
+dotnet restore LocalNotion.CLI/LocalNotion.CLI.csproj --configfile <nuget-config> -p:UseSphere10VisualRendererSource=false -p:Sphere10VisualRendererVersion=<renderer-package-version> -p:BuildNumber=0 -p:BuildRevision=0
+dotnet build LocalNotion.CLI/LocalNotion.CLI.csproj -c Release --no-restore -p:UseSphere10VisualRendererSource=false -p:Sphere10VisualRendererVersion=<renderer-package-version> -p:BuildNumber=0 -p:BuildRevision=0
+```
+
+Source and package builds retain the renderer's MIT and third-party notices in
+the application's output. The renderer version remains independent of
+LocalNotion and Framework. Sphere10-specific website themes remain external
+site overlays; LocalNotion's CMS presets remain owned by Core, as described in
+[theme overrides](renderer-themes.md).
+
+These steps do not publish or install either product. Native CI and Docker
+builds fetch the exact source commits recorded in `build/framework-source.ref`
+and `build/visual-renderer-source.ref`. Keep those pins aligned with the tested
+dependency implementations. Retain package and runner identities when verifying
+an unpublished renderer.

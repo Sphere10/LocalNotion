@@ -166,17 +166,17 @@ public class MonitoredRepository : DisposableResource,  ICmsLocalNotionRepositor
 
 	public virtual void RemoveCmsItem(string slug) => InternalRepository.Value.RemoveCmsItem(slug);
 
-	protected override void FreeManagedResources() {
-		base.FreeManagedResources();
+	protected override void DisposeInternal() {
+		base.DisposeInternal();
 		if (InternalRepository.Loaded)
 			InternalRepository.Value.Dispose();
 
 	}
 
-	protected override async ValueTask FreeManagedResourcesAsync() {
+	protected override async ValueTask DisposeInternalAsync() {
 		if (InternalRepository.Loaded)
 			await InternalRepository.Value.DisposeAsync();
-		await base.FreeManagedResourcesAsync();
+		await base.DisposeInternalAsync();
 	}
 
 }

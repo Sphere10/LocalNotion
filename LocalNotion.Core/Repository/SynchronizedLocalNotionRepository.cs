@@ -223,8 +223,8 @@ public class SynchronizedLocalNotionRepository : LocalNotionRepositoryDecorator,
 			return base.CalculateRenderSlug(resource, render, renderedFilename);
 	}
 
-	public IDisposable EnterReadScope() => _syncObj.EnterReadScope();
+	public ReadScope EnterReadScope() => _syncObj.EnterReadScope();
 
-	public IDisposable EnterWriteScope() => _syncObj.EnterWriteScope();
+	public WriteScope EnterWriteScope() => _syncObj.EnterWriteScope();
 
 }

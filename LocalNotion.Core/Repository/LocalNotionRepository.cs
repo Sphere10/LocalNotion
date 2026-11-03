@@ -846,7 +846,7 @@ public class LocalNotionRepository : SyncDisposable, ILocalNotionRepository {
 
 	#endregion
 
-	protected override void FreeManagedResources() {
+	protected override void DisposeInternal() {
 		if (_disposed)
 			return;
 		_disposed = true;

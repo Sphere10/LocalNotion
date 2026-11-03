@@ -201,7 +201,7 @@ public class CliGitConfigurationTests {
 	[Test]
 	public async Task OmittedPathSelectsCurrentDirectory() {
 		var originalDirectory = Environment.CurrentDirectory;
-		using var restore = Tools.Scope.ExecuteOnDispose(() => Environment.CurrentDirectory = originalDirectory);
+		using var restore = new ActionScope(() => Environment.CurrentDirectory = originalDirectory);
 		Environment.CurrentDirectory = _fixtureRoot;
 		var result = await Parse("git");
 		Assert.That(result.ExitCode, Is.Zero, result.Output);
@@ -318,7 +318,7 @@ public class CliGitConfigurationTests {
 		using var output = new StringWriter();
 		var originalOutput = Console.Out;
 		var originalError = Console.Error;
-		using var restore = Tools.Scope.ExecuteOnDispose(() => {
+		using var restore = new ActionScope(() => {
 			Console.SetOut(originalOutput);
 			Console.SetError(originalError);
 		});

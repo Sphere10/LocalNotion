@@ -1131,7 +1131,7 @@ $@"Local Notion Status:
 			var frameworkOptions = Sphere10FrameworkOptions.Default;
 			Sphere10Framework.Instance.Build()
 				.WithOptions(frameworkOptions)
-				.UseModule<ModuleConfiguration>()
+				.AddModule<ModuleConfiguration>()
 				.Start();
 
 			Console.CancelKeyPress += (sender, args) => {

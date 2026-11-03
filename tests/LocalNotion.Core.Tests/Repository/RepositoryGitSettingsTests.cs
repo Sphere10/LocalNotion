@@ -97,7 +97,7 @@ public class RepositoryGitSettingsTests {
 		var before = await File.ReadAllBytesAsync(_registryFile);
 		var attributes = File.GetAttributes(_registryFile);
 		File.SetAttributes(_registryFile, attributes | FileAttributes.ReadOnly);
-		using var restoreAttributes = Tools.Scope.ExecuteOnDispose(() => File.SetAttributes(_registryFile, attributes));
+		using var restoreAttributes = new ActionScope(() => File.SetAttributes(_registryFile, attributes));
 		using var repository = await LocalNotionRepository.Open(_repositoryRoot);
 		repository.UpdateGitSettings(enabled: false, push: true);
 		await repository.SaveAsync();

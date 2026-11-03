@@ -17,6 +17,7 @@ using CommandLine;
 using LocalNotion.CLI;
 using Notion.Client;
 using NUnit.Framework;
+using Sphere10.Framework;
 
 namespace LocalNotion.Core.Tests;
 
@@ -312,7 +313,7 @@ public class CliCreateCMSTests {
 		using var output = new StringWriter();
 		var originalOutput = Console.Out;
 		var originalError = Console.Error;
-		using var restore = Tools.Scope.ExecuteOnDispose(() => {
+		using var restore = new ActionScope(() => {
 			Console.SetOut(originalOutput);
 			Console.SetError(originalError);
 		});

@@ -3,6 +3,12 @@
 		<!-- Public Framework 3.1.2 still bundles DRM; use the clean source by default. -->
 		<UseSphere10FrameworkSource Condition="'$(UseSphere10FrameworkSource)' == ''">true</UseSphere10FrameworkSource>
 		<Sphere10FrameworkRoot Condition="'$(Sphere10FrameworkRoot)' == ''">$(MSBuildThisFileDirectory)../Framework</Sphere10FrameworkRoot>
+
+		<!-- The current projection requires renderer APIs newer than the public 3.1.3 package. -->
+		<UseSphere10VisualRendererSource Condition="'$(UseSphere10VisualRendererSource)' == '' And '$(Sphere10VisualRendererVersion)' != ''">false</UseSphere10VisualRendererSource>
+		<UseSphere10VisualRendererSource Condition="'$(UseSphere10VisualRendererSource)' == ''">true</UseSphere10VisualRendererSource>
+		<Sphere10VisualRendererRoot Condition="'$(Sphere10VisualRendererRoot)' == ''">$(MSBuildThisFileDirectory)../Components/Sphere10.VisualRenderer</Sphere10VisualRendererRoot>
+
 		<!-- Package mode requires an explicitly supplied, separately verified clean version. -->
 	</PropertyGroup>
   <!-- The vendored Notion.Client keeps its upstream version and package identity. -->

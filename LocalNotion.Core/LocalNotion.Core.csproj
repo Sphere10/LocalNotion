@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AngleSharp" Version="1.8.0" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(DefineConstants)', '(^|;)\s*CleanHTML\s*(;|$)'))" />
-		<PackageReference Include="Sphere10.VisualRenderer" Version="3.1.3" />
+		<PackageReference Include="Sphere10.VisualRenderer" Version="[$(Sphere10VisualRendererVersion)]" Condition="'$(UseSphere10VisualRendererSource)' == 'false'" />
         <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
 		<Sphere10Library Include="Sphere10.Framework" />
 		<Sphere10Library Include="Sphere10.Framework.Application" />
@@ -22,6 +22,11 @@
 	  <ProjectReference Include="..\Notion.Client\Notion.Client.csproj" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(UseSphere10VisualRendererSource)' == 'true'">
+		<!-- Keep the selected configuration when the renderer is outside LocalNotion.sln. -->
+		<ProjectReference Include="$(Sphere10VisualRendererRoot)/src/Sphere10.VisualRenderer/Sphere10.VisualRenderer.csproj" AdditionalProperties="Configuration=$(Configuration);ShouldUnsetParentConfigurationAndPlatform=false" GlobalPropertiesToRemove="CurrentSolutionConfigurationContents" />
+	</ItemGroup>
+
 	<ItemGroup>
 	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
 	</ItemGroup>
@@ -29,5 +34,11 @@
 	<ItemGroup>
 		<EmbeddedResource Include="CMS/BlankCMSDatabase.json" />
 	</ItemGroup>
+
+	<Target Name="ValidateSphere10VisualRendererReferences" BeforeTargets="CollectPackageReferences;PrepareForBuild">
+		<Error Condition="'$(UseSphere10VisualRendererSource)' != 'true' And '$(UseSphere10VisualRendererSource)' != 'false'" Text="UseSphere10VisualRendererSource must be true or false." />
+		<Error Condition="'$(UseSphere10VisualRendererSource)' == 'true' And !Exists('$(Sphere10VisualRendererRoot)/src/Sphere10.VisualRenderer/Sphere10.VisualRenderer.csproj')" Text="Updated VisualRenderer source is required. Set Sphere10VisualRendererRoot to its checkout, or select package mode with an explicit compatible Sphere10VisualRendererVersion; see docs/renderer.md." />
+		<Error Condition="'$(UseSphere10VisualRendererSource)' == 'false' And '$(Sphere10VisualRendererVersion)' == ''" Text="Package mode requires an explicit Sphere10VisualRendererVersion containing the current rendering APIs; public 3.1.3 is insufficient. See docs/renderer.md." />
+	</Target>
 
 </Project>

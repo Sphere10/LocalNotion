@@ -4,9 +4,16 @@
 !Version.props
 !Directory.Build.props
 !Directory.Build.targets
+!build/
+!build/Sphere10.Framework.References.targets
+!build/framework-source.ref
+!build/visual-renderer-source.ref
 !LICENSE
 !COPYRIGHT
 !COPYING.EXCEPTION
+!assets/
+!assets/branding/
+!assets/branding/local-notion.ico
 !LocalNotion.CLI/
 !LocalNotion.CLI/**
 !LocalNotion.Core/

@@ -43,6 +43,10 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       build_number: ${{ steps.version.outputs.build_number }}
       sha: ${{ steps.version.outputs.sha }}
+      framework_repository: ${{ steps.version.outputs.framework_repository }}
+      framework_revision: ${{ steps.version.outputs.framework_revision }}
+      visual_renderer_repository: ${{ steps.version.outputs.visual_renderer_repository }}
+      visual_renderer_revision: ${{ steps.version.outputs.visual_renderer_revision }}
       prerelease: ${{ steps.version.outputs.prerelease }}
       publish: ${{ steps.version.outputs.publish }}
       matrix: ${{ steps.version.outputs.matrix }}
@@ -55,6 +59,8 @@ jobs:
         run: |
           ./tests/release-command-resolution.ps1
           ./tests/release-draft-discovery.ps1
+          ./tests/release-launcher-package.ps1
+          ./tests/release-framework-pin.ps1
       - name: Resolve one version and build number
         id: version
         env:
@@ -81,10 +87,34 @@ jobs:
       SOURCE_REVISION: ${{ needs.metadata.outputs.sha }}
       TARGET_RUNTIME: ${{ matrix.rid }}
       ARCHIVE_EXTENSION: ${{ matrix.archiveExtension }}
+      Sphere10FrameworkRoot: ${{ github.workspace }}/.dependencies/Framework
+      Sphere10VisualRendererRoot: ${{ github.workspace }}/.dependencies/VisualRenderer
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Checkout pinned clean Framework
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ needs.metadata.outputs.framework_repository }}
+          ref: ${{ needs.metadata.outputs.framework_revision }}
+          path: .dependencies/Framework
+          persist-credentials: false
+          sparse-checkout: |
+            src/Sphere10.Framework
+            src/Sphere10.Framework.Data
+            src/Sphere10.Framework.Application
+            resources/branding
+      - name: Checkout pinned VisualRenderer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ needs.metadata.outputs.visual_renderer_repository }}
+          ref: ${{ needs.metadata.outputs.visual_renderer_revision }}
+          path: .dependencies/VisualRenderer
+          persist-credentials: false
+          sparse-checkout: |
+            src/Sphere10.VisualRenderer
+            resources/branding
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: 'global.json'
@@ -113,7 +143,7 @@ jobs:
       - name: LocalNotion repository and renderer-integration regressions
         if: matrix.rid == 'win-x64' || matrix.rid == 'linux-x64'
         run: |
-          dotnet test LocalNotion.sln -c Release --logger "trx;LogFilePrefix=regressions" --results-directory ./TestResults
+          dotnet test LocalNotion.sln -c Release "-p:BuildNumber=$env:BUILD_NUMBER" -p:BuildRevision=0 --logger "trx;LogFilePrefix=regressions" --results-directory ./TestResults
           if ($LASTEXITCODE -ne 0) { throw 'NUnit regression tests failed.' }
       - name: Upload regression test results
         if: always() && (matrix.rid == 'win-x64' || matrix.rid == 'linux-x64')

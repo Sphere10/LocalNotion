@@ -116,7 +116,7 @@ $null = New-Item -ItemType Directory -Path $payloadDirectory -Force
 try {
     $publishArguments = @(
         'publish', (Join-Path $repoRoot 'LocalNotion.CLI/LocalNotion.CLI.csproj'),
-        '--configuration', 'Release', '--framework', 'net10.0', '--runtime', $Runtime,
+        '--configuration', 'Release', '--framework', 'net11.0', '--runtime', $Runtime,
         '--self-contained', 'true', '--output', $payloadDirectory,
         '-p:PublishSingleFile=true',
         '-p:DebugSymbols=false', '-p:DebugType=None',

@@ -123,7 +123,7 @@ jobs:
         run: |
           ./build/test-package.ps1 -ArchivePath ./publish/artifacts/localnotion-linux-arm.tar.gz -Runtime linux-arm -Version $env:RELEASE_VERSION -BuildNumber $env:BUILD_NUMBER -SourceRevisionId $env:SOURCE_REVISION -SkipExecution -ExtractDirectory ./publish/arm-smoke
           $mount = "type=bind,source=$((Resolve-Path ./publish/arm-smoke).Path),target=/app,readonly"
-          $result = & docker run --rm --network none --platform linux/arm/v7 --mount $mount mcr.microsoft.com/dotnet/runtime-deps:10.0-noble /app/localnotion --version 2>&1
+          $result = & docker run --rm --network none --platform linux/arm/v7 --mount $mount mcr.microsoft.com/dotnet/runtime-deps:11.0-resolute /app/localnotion --version 2>&1
           if ($LASTEXITCODE -ne 0) { throw ($result -join [Environment]::NewLine) }
           $expected = "$($env:RELEASE_VERSION.Split('-')[0]).$env:BUILD_NUMBER"
           if (($result -join [Environment]::NewLine) -notlike "*$expected*") { throw 'ARM32 version does not match the release.' }

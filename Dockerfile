@@ -1,6 +1,6 @@
 # Official Local Notion Docker
 # Build with: docker build --platform linux/amd64 -t local-notion .
-FROM mcr.microsoft.com/dotnet/sdk:10.0.400-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0.100-resolute AS build
 ARG VERSION=dev
 ARG BUILD_NUMBER=0
 ARG VCS_REF=
@@ -48,7 +48,7 @@ RUN set --; \
     -p:PublishSingleFile=true \
     -p:DebugType=None -p:DebugSymbols=false -p:BuildRevision=0 "-p:BuildNumber=$BUILD_NUMBER" "$@" -o /out
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble
+FROM mcr.microsoft.com/dotnet/runtime-deps:11.0-resolute
 ARG VERSION=dev
 ARG VCS_REF=unknown
 ARG BUILD_NUMBER=0

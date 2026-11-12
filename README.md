@@ -83,10 +83,10 @@ The command prints the new database ID and URL. It leaves zero active content ro
 ### Prerequisites
 
 - Windows, Linux, or macOS
-- **.NET 10 SDK** (the SDK version is selected by [global.json](global.json))
+- **.NET 11 SDK** (the SDK version is selected by [global.json](global.json))
 - Visual Studio 2026 (18.0+) for optional Windows IDE builds
 
-> **Note:** This repository includes projects targeting both **.NET 10** and **.NET Standard 2.0**. Install the .NET 10 SDK selected by global.json to build the full solution.
+> **Note:** This repository includes projects targeting both **.NET 11** and **.NET Standard 2.0**. Install the .NET 11 SDK selected by global.json to build the full solution.
 
 ### Framework dependency and build modes
 

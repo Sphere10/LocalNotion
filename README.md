@@ -99,14 +99,15 @@ It must contain `src/Sphere10.Framework`, `src/Sphere10.Framework.Data` and
 `src/Sphere10.Framework.Application`, with the DRM implementation removed from
 Application. No Enterprise checkout, private package feed or product key is needed.
 
-**Availability boundary (18 October 2026):** public Framework NuGet packages stop
-at 3.1.2; that Application package still contains legacy DRM and is not supported.
-The clean 3.1.3 source was verified from a local checkout with unpublished
-post-extraction changes. A fresh public Framework clone has not been verified to
-contain those changes. Until the clean source or packages are published, obtain
-the matching clean source from its maintainer; a plain public clone is not a
-proven substitute. This source change does not update installed LocalNotion
-executables or publish a release.
+The clean Framework source, including the visual renderer, is public in
+[HermanSchoenfeld/Sphere10.Framework](https://github.com/HermanSchoenfeld/Sphere10.Framework).
+The exact tested commit is recorded in [build/framework-source.ref](build/framework-source.ref).
+Use that pin when reproducing the source build. Framework.Application 3.1.2 still
+contains legacy DRM and is not supported. Package builds require one exact,
+tested clean Framework version for all references. See the
+[Framework publishing guide](https://github.com/HermanSchoenfeld/Sphere10.Framework/blob/master/docs/nuget-publishing.md)
+for stable and prerelease installation. Source changes do not update installed
+LocalNotion executables or publish a LocalNotion release.
 
 ### Build (CLI)
 

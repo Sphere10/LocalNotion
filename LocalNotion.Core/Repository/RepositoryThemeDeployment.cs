@@ -9,42 +9,37 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.FileProviders;
+using Sphere10.Framework;
 
 namespace LocalNotion.Core;
 
 internal static class RepositoryThemeDeployment {
-	private static readonly ManifestEmbeddedFileProvider _embeddedThemes = new(typeof(Sphere10.VisualRenderer.HtmlRenderer).Assembly, "Themes");
-
-	internal static Task DeployMissing(string themesDirectory) => DeployDirectory("", themesDirectory);
-
-	private static async Task DeployDirectory(string sourceDirectory, string destinationDirectory) {
-		Directory.CreateDirectory(destinationDirectory);
-		foreach (var entry in _embeddedThemes.GetDirectoryContents(string.IsNullOrEmpty(sourceDirectory) ? "/" : sourceDirectory)) {
-			var destination = Path.Combine(destinationDirectory, entry.Name);
-			if (entry.IsDirectory) {
-				var source = string.IsNullOrEmpty(sourceDirectory) ? entry.Name : sourceDirectory + "/" + entry.Name;
-				await DeployDirectory(source, destination);
+	internal static async Task DeployMissing(string themesDirectory) {
+		using var archive = Sphere10.Framework.Web.VisualRenderer.EmbeddedThemes.OpenArchive();
+		foreach (var entry in archive.Entries) {
+			if (entry.Name.Length == 0)
 				continue;
-			}
-			if (File.Exists(destination))
-				continue;
+			var destination = Path.Combine(themesDirectory, entry.FullName);
+			await DeployFile(entry.Open, destination);
+		}
+	}
 
-			// Publish complete files atomically and never replace a user override, including an empty file.
-			var temporaryFile = Path.Combine(destinationDirectory, ".localnotion-theme-" + Guid.NewGuid().ToString("N") + ".tmp");
-			try {
-				using (var source = entry.CreateReadStream()) {
-					await using var output = new FileStream(temporaryFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
-					await source.CopyToAsync(output);
-				}
-				try {
-					File.Move(temporaryFile, destination);
-				} catch (IOException) when (File.Exists(destination)) {
-					// Another repository opener or the user supplied this file while it was being copied.
-				}
-			} finally {
-				File.Delete(temporaryFile);
-			}
+	private static async Task DeployFile(Func<Stream> openSource, string destination) {
+		if (File.Exists(destination))
+			return;
+		var directory = Path.GetDirectoryName(destination);
+		Directory.CreateDirectory(directory);
+		// Publish complete files atomically and preserve user overrides, including empty files.
+		var temporaryFile = Path.Combine(directory, ".localnotion-theme-" + Guid.NewGuid().ToString("N") + ".tmp");
+		using var cleanup = new ActionScope(() => File.Delete(temporaryFile));
+		using (var source = openSource()) {
+			await using var output = new FileStream(temporaryFile, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+			await source.CopyToAsync(output);
+		}
+		try {
+			File.Move(temporaryFile, destination);
+		} catch (IOException) when (File.Exists(destination)) {
+			// Another opener or the user supplied the destination during extraction.
 		}
 	}
 }

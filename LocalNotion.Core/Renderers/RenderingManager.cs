@@ -13,10 +13,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Sphere10.Framework;
-using StandaloneHtmlRenderer = Sphere10.VisualRenderer.HtmlRenderer;
-using R = Sphere10.VisualRenderer;
+using StandaloneHtmlRenderer = Sphere10.Framework.Web.VisualRenderer.HtmlRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core;
 
@@ -183,7 +183,7 @@ public class RenderingManager {
 			: assetRelativePath;
 		return new RenderOptions {
 			Themes = Repository.DefaultThemes,
-			Mode = mode == RenderMode.Editable ? Sphere10.VisualRenderer.RenderMode.Editable : Sphere10.VisualRenderer.RenderMode.ReadOnly,
+			Mode = mode == RenderMode.Editable ? Sphere10.Framework.Web.VisualRenderer.RenderMode.Editable : Sphere10.Framework.Web.VisualRenderer.RenderMode.ReadOnly,
 			Environment = Repository.Paths.Mode == LocalNotionMode.Online ? RenderEnvironment.Online : RenderEnvironment.Offline,
 			AssetBaseUrl = assetBase
 		};

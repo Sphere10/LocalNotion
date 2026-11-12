@@ -13,10 +13,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Notion.Client;
 using Sphere10.Framework;
-using R = Sphere10.VisualRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core;
 

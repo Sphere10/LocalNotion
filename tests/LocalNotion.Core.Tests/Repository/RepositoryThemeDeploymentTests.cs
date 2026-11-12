@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using LocalNotion.Core;
-using Microsoft.Extensions.FileProviders;
 using NUnit.Framework;
 using Sphere10.Framework;
 
@@ -117,23 +116,16 @@ public class RepositoryThemeDeploymentTests {
 	}
 
 	private static Dictionary<string, byte[]> ReadEmbeddedFiles() {
-		var provider = new ManifestEmbeddedFileProvider(typeof(Sphere10.VisualRenderer.HtmlRenderer).Assembly, "Themes");
 		var files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-		ReadDirectory("");
-		return files;
-
-		void ReadDirectory(string directory) {
-			foreach (var entry in provider.GetDirectoryContents(string.IsNullOrEmpty(directory) ? "/" : directory)) {
-				var path = string.IsNullOrEmpty(directory) ? entry.Name : directory + "/" + entry.Name;
-				if (entry.IsDirectory) {
-					ReadDirectory(path);
-					continue;
-				}
-				using var source = entry.CreateReadStream();
-				using var buffer = new MemoryStream();
-				source.CopyTo(buffer);
-				files[path] = buffer.ToArray();
-			}
+		using var archive = Sphere10.Framework.Web.VisualRenderer.EmbeddedThemes.OpenArchive();
+		foreach (var entry in archive.Entries) {
+			if (entry.Name.Length == 0)
+				continue;
+			using var source = entry.Open();
+			using var buffer = new MemoryStream();
+			source.CopyTo(buffer);
+			files.Add(entry.FullName, buffer.ToArray());
 		}
+		return files;
 	}
 }

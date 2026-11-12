@@ -16,16 +16,6 @@ $frameworkRevision = $Matches.revision
 if ($frameworkRevision -ceq ('0' * 40)) { throw 'Replace the pending Framework source pin with a verified public clean commit before building a release.' }
 $frameworkRepository = 'HermanSchoenfeld/Sphere10.Framework'
 
-$visualRendererPin = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'visual-renderer-source.ref') -Raw
-if ($visualRendererPin -cnotmatch '\AHermanSchoenfeld/Sphere10\.VisualRenderer (?<revision>[0-9a-f]{40})(?:\r?\n)?\z') {
-    throw 'visual-renderer-source.ref must contain HermanSchoenfeld/Sphere10.VisualRenderer and one lowercase 40-character commit ID.'
-}
-$visualRendererRevision = $Matches.revision
-if ($visualRendererRevision -ceq ('0' * 40)) {
-    throw 'Replace the pending VisualRenderer source pin with a verified public commit before building a release.'
-}
-$visualRendererRepository = 'HermanSchoenfeld/Sphere10.VisualRenderer'
-
 [xml]$configuration = Get-Content -LiteralPath (Join-Path $root 'Version.props') -Raw
 $configuredVersion = $configuration.SelectSingleNode('/Project/PropertyGroup/ReleaseVersion').InnerText.Trim()
 if ($Tag) {
@@ -54,8 +44,6 @@ $result = [ordered]@{
     sha = $sha
     framework_repository = $frameworkRepository
     framework_revision = $frameworkRevision
-    visual_renderer_repository = $visualRendererRepository
-    visual_renderer_revision = $visualRendererRevision
     prerelease = $Version.Contains('-').ToString().ToLowerInvariant()
     publish = $Publish.IsPresent.ToString().ToLowerInvariant()
     matrix = ($matrix | ConvertTo-Json -Depth 5 -Compress)

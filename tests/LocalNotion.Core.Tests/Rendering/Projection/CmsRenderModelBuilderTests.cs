@@ -16,7 +16,7 @@ using LocalNotion.Core;
 using Notion.Client;
 using NUnit.Framework;
 using Sphere10.Framework;
-using R = Sphere10.VisualRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core.Tests;
 
@@ -105,7 +105,7 @@ public class CmsRenderModelBuilderTests {
 		};
 		var html = new R.HtmlRenderer().Render(Fragment(template), options).Html;
 		var links = new HtmlParser().ParseDocument(html).QuerySelectorAll("a[href]");
-		Assert.That(links, Has.Length.EqualTo(templateName.StartsWith("articles_summary", StringComparison.Ordinal) ? 2 : 1));
+		Assert.That(links, Has.Length.EqualTo(1));
 		Assert.That(links.Select(link => link.GetAttribute("href")), Is.All.EqualTo(expectedUrl));
 	}
 

@@ -18,7 +18,7 @@ using LocalNotion.Core;
 using Notion.Client;
 using NUnit.Framework;
 using Sphere10.Framework;
-using R = Sphere10.VisualRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core.Tests;
 

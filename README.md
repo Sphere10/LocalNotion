@@ -26,7 +26,7 @@ Workspace restore is listed as **coming soon** on the [Local Notion product page
 
 ## Standalone renderer
 
-LocalNotion uses the independently versioned MIT-licensed Sphere10.VisualRenderer library. Workspace builds use its updated source; package builds require an explicitly selected compatible version. See [rendering integration](docs/renderer.md).
+LocalNotion uses the MIT-licensed Sphere10.Framework.Web.VisualRenderer library. Workspace builds use its updated source; package builds require an explicitly selected compatible version. See [rendering integration](docs/renderer.md).
 
 ## Native downloads
 
@@ -91,8 +91,7 @@ The command prints the new database ID and URL. It leaves zero active content ro
 ### Framework dependency and build modes
 
 LocalNotion has no Enterprise package, license activation, repository quota or
-page quota. It uses the MIT Framework application lifecycle and the independently
-versioned MIT Sphere10.VisualRenderer library.
+page quota. It uses the MIT Framework application lifecycle and the MIT Sphere10.Framework.Web.VisualRenderer library.
 
 The default build uses **post-DRM-extraction Framework source** from a sibling
 `../Framework` directory. Set `Sphere10FrameworkRoot` to use another checkout.
@@ -111,8 +110,8 @@ executables or publish a release.
 
 ### Build (CLI)
 
-From the repository root, with the clean Framework and updated
-`../Components/Sphere10.VisualRenderer` checkouts available:
+From the repository root, with the clean Framework checkout (including
+`src/Sphere10.Framework.Web.VisualRenderer`) available:
 
 ```bash
 dotnet build LocalNotion.sln -c Release -p:BuildNumber=0 -p:BuildRevision=0
@@ -121,9 +120,7 @@ dotnet test tests/LocalNotion.Core.Tests/LocalNotion.Core.Tests.csproj -c Releas
 
 For a different source location, add
 `-p:Sphere10FrameworkRoot=/absolute/path/to/Framework`. Explicit build numbers
-avoid incrementing the checkouts' local build counters. Set
-`-p:Sphere10VisualRendererRoot=/absolute/path/to/Sphere10.VisualRenderer` for a
-different renderer source location. See [renderer build modes](docs/renderer.md#building)
+avoid incrementing the checkouts' local build counters. The renderer uses the same Framework root and package version. See [renderer build modes](docs/renderer.md#building)
 to select an explicitly versioned renderer package instead.
 
 Package mode is retained for a **separately produced and verified clean package
@@ -275,7 +272,7 @@ A Local Notion repository contains:
 
 ## Independent rendering
 
-Rendering is supplied by the independently versioned MIT-licensed Sphere10.VisualRenderer package. See [rendering integration](docs/renderer.md) and [theme overrides](docs/renderer-themes.md).
+Rendering is supplied by the MIT-licensed Sphere10.Framework.Web.VisualRenderer package. See [rendering integration](docs/renderer.md) and [theme overrides](docs/renderer-themes.md).
 
 ## Troubleshooting
 
@@ -298,7 +295,7 @@ Maintainers: see the [release and deployment guide](build/README.md) for CI/CD, 
 
 ## License
 
-LocalNotion source code is licensed under the **GNU GPL v3.0** (or later), except separately licensed materials. **Sphere10.VisualRenderer 3.1.3** and the clean **Sphere10 Framework** dependencies are MIT-licensed. Preserve their license and third-party notices when distributing binaries.
+LocalNotion source code is licensed under the **GNU GPL v3.0** (or later), except separately licensed materials. **Sphere10.Framework.Web.VisualRenderer** and the clean **Sphere10 Framework** dependencies are MIT-licensed. Preserve their license and third-party notices when distributing binaries.
 
 The [VisualRenderer linking exception](COPYING.EXCEPTION) grants additional permission only for copyrights Herman Schoenfeld or Sphere 10 Software Pty Ltd own or are authorized to license. It does not grant permission on behalf of other contributors or override third-party licenses. See [renderer licensing and distribution](docs/renderer.md#licensing-and-distribution).
 

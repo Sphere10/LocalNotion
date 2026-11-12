@@ -11,12 +11,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LocalNotion.Core;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Newtonsoft.Json;
 using Notion.Client;
 using NUnit.Framework;
 using Sphere10.Framework;
-using R = Sphere10.VisualRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core.Tests;
 
@@ -136,7 +136,7 @@ public class NotionRenderModelBuilderTests {
 			parent = child;
 		}
 		R.DocumentBlock document = new NotionRenderModelBuilder().Build(resourceValue, root, objectsValue, purpose: ProjectionPurpose.Text);
-		var textValue = new Sphere10.VisualRenderer.TextRenderer().Render(document);
+		var textValue = new Sphere10.Framework.Web.VisualRenderer.TextRenderer().Render(document);
 		Assert.That(textValue, Does.Contain("depth 0").And.Not.Contain("depth 159"), "source depth truncation leaves enough budget for normalized visual list wrappers");
 	}
 
@@ -186,7 +186,7 @@ public class NotionRenderModelBuilderTests {
 		repositoryValue.GraphMap[resourceValue.ID] = deepGraph;
 		var readsBefore = repositoryValue.ObjectReads;
 		R.DocumentBlock deepDocument = builder.Build(resourceValue.ID, _fixtureRoot);
-		var textValue = new Sphere10.VisualRenderer.TextRenderer().Render(deepDocument);
+		var textValue = new Sphere10.Framework.Web.VisualRenderer.TextRenderer().Render(deepDocument);
 		Assert.That(textValue, Does.Contain("stored depth 0").And.Not.Contain("stored depth 9999"), "stored-resource loading truncates deep graphs without recursive enumeration");
 		Assert.That(repositoryValue.ObjectReads - readsBefore, Is.LessThan(300), "stored-resource loading reads only the bounded renderable graph prefix");
 	}
@@ -370,8 +370,8 @@ public class NotionRenderModelBuilderTests {
 		objectsValue.Clear();
 		repositoryValue.ResourceMap.Clear();
 		paragraphValue.Paragraph.RichText = [Run("MUTATED SOURCE")];
-		var htmlValue = new Sphere10.VisualRenderer.HtmlRenderer().Render(document).Html;
-		var textValue = new Sphere10.VisualRenderer.TextRenderer().Render(document);
+		var htmlValue = new Sphere10.Framework.Web.VisualRenderer.HtmlRenderer().Render(document).Html;
+		var textValue = new Sphere10.Framework.Web.VisualRenderer.TextRenderer().Render(document);
 		Assert.That(htmlValue, Does.Contain("Rendered from detached data").And.Not.Contain("MUTATED SOURCE"), "HTML rendering uses materialized values after source becomes unavailable");
 		Assert.That(textValue, Is.EqualTo("Detached render" + Environment.NewLine + "detached render" + Environment.NewLine + "Rendered from detached data" + Environment.NewLine + Environment.NewLine + Environment.NewLine), "text renderer traverses typed model and preserves child-reference omission");
 	}

@@ -88,7 +88,7 @@ $commit = (git rev-parse HEAD).Trim()
 ./build/package.ps1 -Runtime linux-x64 -Version 1.7.0 -BuildNumber 17 -SourceRevisionId $commit -OutputDirectory ./publish/example/artifacts
 ```
 
-The script publishes the complete self-contained `net10.0` output, includes native dependencies, then adds the platform installer, README, repository `LICENSE`, `COPYRIGHT` and `COPYING.EXCEPTION`, `VERSION.txt`, and `localnotion-release.json`. LocalNotion remains GPL-licensed; Sphere10.VisualRenderer and other dependencies retain their separate licenses and notices. Preserve the renderer notices copied by its NuGet package in the published output. The [linking exception](../COPYING.EXCEPTION) covers only copyrights the named Grantors own or are authorized to license; any additional rights required from other contributors or third-party suppliers must be resolved before release. No old proprietary EULA, credentials, or private Docker state is copied. Repackaging a RID into the same local output directory replaces its archive.
+The script publishes the complete self-contained `net10.0` output, includes native dependencies, then adds the platform installer, README, repository `LICENSE`, `COPYRIGHT` and `COPYING.EXCEPTION`, `VERSION.txt`, and `localnotion-release.json`. LocalNotion remains GPL-licensed; Sphere10.Framework.Web.VisualRenderer and other dependencies retain their separate licenses and notices. Preserve the renderer notices copied by its NuGet package in the published output. The [linking exception](../COPYING.EXCEPTION) covers only copyrights the named Grantors own or are authorized to license; any additional rights required from other contributors or third-party suppliers must be resolved before release. No old proprietary EULA, credentials, or private Docker state is copied. Repackaging a RID into the same local output directory replaces its archive.
 
 The release matrix contains all eight supported RIDs. To package them locally,
 use an SDK host that supports cross-compiling each target:
@@ -186,12 +186,10 @@ Docker still requires the clean Framework build prerequisite described above.
 
 ### Renderer package dependency
 
-LocalNotion restores the pinned Sphere10.VisualRenderer binary NuGet package.
-Version 3.1.3 is publicly available under MIT. This workflow does not build or
-publish the renderer.
-
-Make the pinned package available to the developer/CI NuGet sources before
-building a LocalNotion release. See [renderer integration](../docs/renderer.md).
+LocalNotion builds the renderer from the same immutable Framework source pin
+used by native CI and Docker. Package mode uses the same exact Framework version
+and configured feed as the other Framework libraries. This workflow does not
+publish Framework packages. See [renderer integration](../docs/renderer.md).
 The renderer's version changes independently of LocalNotion's release version.
 
 ### Validate an archive

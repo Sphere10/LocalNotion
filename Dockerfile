@@ -8,7 +8,7 @@ WORKDIR /src
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates git \
     && rm -rf /var/lib/apt/lists/*
-COPY build/framework-source.ref build/visual-renderer-source.ref build/
+COPY build/framework-source.ref build/
 # Native CI and standalone Docker builds use the same immutable public source pins.
 # Cone-mode sparse checkout includes root MSBuild files and only these dependency projects.
 RUN set -eu; \
@@ -21,27 +21,12 @@ RUN set -eu; \
     git init /Framework; \
     git -C /Framework remote add origin "https://github.com/$framework_repository.git"; \
     git -C /Framework sparse-checkout init --cone; \
-    git -C /Framework sparse-checkout set src/Sphere10.Framework src/Sphere10.Framework.Data src/Sphere10.Framework.Application resources/branding; \
+    git -C /Framework sparse-checkout set src/Sphere10.Framework src/Sphere10.Framework.Data src/Sphere10.Framework.Application src/Sphere10.Framework.Web.VisualRenderer resources/branding; \
     git -C /Framework fetch --depth=1 --filter=blob:none origin "$framework_revision"; \
     git -C /Framework checkout --detach "$framework_revision"; \
     [ "$(git -C /Framework rev-parse HEAD)" = "$framework_revision" ]; \
     [ ! -d /Framework/src/Sphere10.Framework.Application/DRM ]
 ENV Sphere10FrameworkRoot=/Framework
-RUN set -eu; \
-    renderer_pin="$(sed 's/\r$//' build/visual-renderer-source.ref)"; \
-    [ "$(printf '%s\n' "$renderer_pin" | wc -l)" -eq 1 ]; \
-    printf '%s\n' "$renderer_pin" | grep -Eq '^HermanSchoenfeld/Sphere10\.VisualRenderer [0-9a-f]{40}$'; \
-    renderer_repository="${renderer_pin% *}"; \
-    renderer_revision="${renderer_pin#* }"; \
-    [ "$renderer_revision" != 0000000000000000000000000000000000000000 ] || { echo 'VisualRenderer source pin is pending.' >&2; exit 1; }; \
-    git init /VisualRenderer; \
-    git -C /VisualRenderer remote add origin "https://github.com/$renderer_repository.git"; \
-    git -C /VisualRenderer sparse-checkout init --cone; \
-    git -C /VisualRenderer sparse-checkout set src/Sphere10.VisualRenderer resources/branding; \
-    git -C /VisualRenderer fetch --depth=1 --filter=blob:none origin "$renderer_revision"; \
-    git -C /VisualRenderer checkout --detach "$renderer_revision"; \
-    [ "$(git -C /VisualRenderer rev-parse HEAD)" = "$renderer_revision" ]
-ENV Sphere10VisualRendererRoot=/VisualRenderer
 COPY global.json Version.props Directory.Build.props Directory.Build.targets ./
 COPY build/Sphere10.Framework.References.targets build/
 COPY LICENSE COPYRIGHT COPYING.EXCEPTION ./

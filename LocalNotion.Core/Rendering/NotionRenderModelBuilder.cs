@@ -14,10 +14,11 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Notion.Client;
 using Sphere10.Framework;
-using R = Sphere10.VisualRenderer;
+using BookmarkBlock = Notion.Client.BookmarkBlock;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core;
 

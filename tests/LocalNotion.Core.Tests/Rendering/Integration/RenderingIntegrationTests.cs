@@ -15,13 +15,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
 using LocalNotion.Core;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Notion.Client;
 using NUnit.Framework;
 using Sphere10.Framework;
 using CoreMode = LocalNotion.Core.RenderMode;
-using HtmlRendererEngine = Sphere10.VisualRenderer.HtmlRenderer;
-using R = Sphere10.VisualRenderer;
+using HtmlRendererEngine = Sphere10.Framework.Web.VisualRenderer.HtmlRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core.Tests;
 

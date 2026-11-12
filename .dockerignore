@@ -7,7 +7,6 @@
 !build/
 !build/Sphere10.Framework.References.targets
 !build/framework-source.ref
-!build/visual-renderer-source.ref
 !LICENSE
 !COPYRIGHT
 !COPYING.EXCEPTION

@@ -17,13 +17,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
 using LocalNotion.Core;
-using Sphere10.VisualRenderer;
+using Sphere10.Framework.Web.VisualRenderer;
 using Newtonsoft.Json;
 using Notion.Client;
 using NUnit.Framework;
 using Sphere10.Framework;
 using CoreRenderMode = LocalNotion.Core.RenderMode;
-using R = Sphere10.VisualRenderer;
+using R = Sphere10.Framework.Web.VisualRenderer;
 
 namespace LocalNotion.Core.Tests;
 
@@ -202,7 +202,7 @@ public class RepositoryIntegrationTests {
 		var first = resources.First();
 		var renderPath = Path.GetFullPath(first.Renders[RenderType.HTML].LocalPath, root);
 		R.DocumentBlock model = new NotionRenderModelBuilder(repository).Build(first.ID, Path.GetDirectoryName(renderPath));
-		Assert.That(new Sphere10.VisualRenderer.HtmlRenderer().Render(model).Html, Is.Not.Empty, "Projected data must render independently.");
+		Assert.That(new Sphere10.Framework.Web.VisualRenderer.HtmlRenderer().Render(model).Html, Is.Not.Empty, "Projected data must render independently.");
 		await repository.SaveAsync();
 		TestContext.Progress.WriteLine($"Rendered {resources.Length} source documents and {repository.CMSItems.Count()} CMS documents in the isolated copy.");
 	}
